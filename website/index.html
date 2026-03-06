@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stainless Max | Güçlü Masaüstü Otomasyon Platformu</title>
+    <title>Stainless Max | AI Video Üretim & Paylaşım Platformu</title>
     <meta name="description"
-        content="Stainless Max — hesap yönetimi, otomasyon ve güvenliği tek bir çatı altında toplayan yeni nesil masaüstü uygulaması. Hemen indirin.">
+        content="Stainless Max — YouTube Shorts ve TikTok için otomatik video üretip paylaşan, sınırsız hesap yönetimi sunan devrim niteliğinde masaüstü uygulaması.">
     <link rel="icon" type="image/png" href="assets/logo.png">
     <link rel="stylesheet" href="style.css">
     <link
@@ -23,6 +23,14 @@
     <div class="blob blob-3"></div>
     <canvas id="particles"></canvas>
 
+    <!-- Floating Social Icons -->
+    <div class="floating-icons">
+        <div class="float-icon tiktok-float"><i class="fa-brands fa-tiktok"></i></div>
+        <div class="float-icon youtube-float"><i class="fa-brands fa-youtube"></i></div>
+        <div class="float-icon tiktok-float-small"><i class="fa-brands fa-tiktok"></i></div>
+        <div class="float-icon youtube-float-small"><i class="fa-brands fa-youtube"></i></div>
+    </div>
+
     <!-- Navbar -->
     <nav class="navbar" id="navbar">
         <div class="container nav-content">
@@ -32,14 +40,14 @@
             </a>
             <ul class="nav-links">
                 <li><a href="#features">Özellikler</a></li>
-                <li><a href="#showcase">Ekran Görüntüleri</a></li>
+                <li><a href="#showcase">Arayüz</a></li>
                 <li><a href="#how-it-works">Nasıl Çalışır</a></li>
                 <li><a href="#contact">İletişim</a></li>
             </ul>
             <div class="nav-right">
-                <a class="nav-link btn btn-primary px-3 py-2 text-white download-nav"
-                    href="https://github.com/enespaslanmaz/stainlessmax/releases/download/v2.1.0/StainlessMax_Setup_v2.1.0.exe"
-                    download><i class="fa-solid fa-download me-2"></i>Hemen İndir</a>
+                <a class="nav-link btn btn-primary px-3 py-2 text-white download-nav" href="#download">
+                    <i class="fa-solid fa-bolt me-2"></i>Hemen Üretmeye Başla
+                </a>
                 <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menü">
                     <span></span><span></span><span></span>
                 </button>
@@ -48,7 +56,7 @@
         <!-- Mobile Menu -->
         <div class="mobile-menu" id="mobileMenu">
             <a href="#features">Özellikler</a>
-            <a href="#showcase">Ekran Görüntüleri</a>
+            <a href="#showcase">Arayüz</a>
             <a href="#how-it-works">Nasıl Çalışır</a>
             <a href="#contact">İletişim</a>
             <a href="#download" class="btn btn-glow" style="margin-top: 16px;">İndir</a>
@@ -59,57 +67,58 @@
     <header class="hero" id="hero">
         <div class="container hero-content">
             <div class="hero-text anim-slide-up">
-                <div class="badge pulse-border">
-                    <i class="fa-solid fa-rocket"></i> Sürüm 2.1 — Tamamen Yenilendi
+                <div class="badge platform-badge pulse-border">
+                    <i class="fa-solid fa-fire-flame-curved"></i> Akıllı Video Fabrikası — Sürüm 2.1
                 </div>
                 <h1>
-                    <span class="hero-line">Hesaplarınızı Yönetin.</span>
-                    <span class="hero-line">Görevleri Otomatikleştirin.</span>
-                    <span class="hero-line gradient-text typing-text">Her Şey Tek Ekranda.</span>
+                    <span class="hero-line">TikTok & Shorts İçin.</span>
+                    <span class="hero-line">Otomatik Video Üretin.</span>
+                    <span class="hero-line gradient-text-wow typing-text">Zahmetsiz Paylaşın.</span>
                 </h1>
-                <p class="hero-desc">Stainless Max, hesap yönetiminden yapay zekâ destekli otomasyona kadar tüm
-                    süreçlerinizi yöneten, <strong>tamamen yerel</strong> ve <strong>ultra güvenli</strong> bir masaüstü
-                    platformudur.</p>
+                <p class="hero-desc">Stainless Max, yapay zeka ile otomatik videolar üretip sıfır eforla <strong>YouTube
+                        Shorts</strong> ve <strong>TikTok</strong> hesaplarınızda paylaşan <strong>yerel ve
+                        güvenli</strong> masaüstü platformudur.</p>
                 <div class="hero-buttons">
-                    <a href="#download" class="btn btn-primary btn-lg">
+                    <a href="https://github.com/enespaslanmaz/stainlessmax/releases/download/v2.1.0/StainlessMax_Setup_v2.1.0.exe"
+                        class="btn btn-primary btn-lg shine-hover" download>
                         <i class="fa-brands fa-windows"></i> Windows İçin İndir
                         <span class="btn-shine"></span>
                     </a>
                     <a href="https://github.com/enespaslanmaz1-sudo/stainlessmax/releases/download/v2.2.0/StainlessMax_macOS.dmg"
-                        class="btn btn-glow btn-lg">
+                        class="btn btn-glow btn-lg neon-border">
                         <i class="fa-brands fa-apple"></i> macOS İçin İndir
                     </a>
                     <a href="#showcase" class="btn btn-ghost btn-lg">
-                        <i class="fa-solid fa-play"></i> Keşfet
+                        <i class="fa-solid fa-play"></i> Sistemi Keşfet
                     </a>
                 </div>
                 <div class="hero-stats">
                     <div class="stat">
-                        <span class="stat-number" data-target="1440">0</span><span class="stat-suffix">px</span>
-                        <span class="stat-label">Geniş Arayüz</span>
+                        <span class="stat-number" data-target="100">0</span><span class="stat-suffix">%</span>
+                        <span class="stat-label">Otonom Akış</span>
                     </div>
                     <div class="stat-divider"></div>
                     <div class="stat">
-                        <span class="stat-number" data-target="100">0</span><span class="stat-suffix">%</span>
-                        <span class="stat-label">Yerel & Güvenli</span>
+                        <span class="stat-number" data-target="2">0</span><span class="stat-suffix"></span>
+                        <span class="stat-label">Platform (Arka Arkaya)</span>
                     </div>
                     <div class="stat-divider"></div>
                     <div class="stat">
                         <span class="stat-number" data-target="24">0</span><span class="stat-suffix">/7</span>
-                        <span class="stat-label">Otomasyon</span>
+                        <span class="stat-label">Çalışma Garantisi</span>
                     </div>
                 </div>
             </div>
             <div class="hero-visual anim-slide-up delay-2">
-                <div class="hero-glow"></div>
-                <div class="mockup-window">
+                <div class="hero-glow-wow"></div>
+                <div class="mockup-window modern-glass">
                     <div class="mockup-titlebar">
                         <div class="titlebar-dots">
                             <span class="dot red"></span>
                             <span class="dot yellow"></span>
                             <span class="dot green"></span>
                         </div>
-                        <span class="titlebar-text">Stainless Max — Dashboard</span>
+                        <span class="titlebar-text">Stainless Max — Video Fabrikası</span>
                     </div>
                     <img src="assets/dashboard1.png" alt="Stainless Max Dashboard" class="mockup-screen"
                         loading="eager">
@@ -117,7 +126,7 @@
             </div>
         </div>
         <div class="hero-scroll-hint">
-            <span>Keşfet</span>
+            <span>Aşağı Kaydır</span>
             <div class="scroll-arrow"></div>
         </div>
     </header>
@@ -126,49 +135,53 @@
     <section id="features" class="section features">
         <div class="container">
             <div class="section-header anim-fade">
-                <span class="section-tag"><i class="fa-solid fa-star"></i> ÖZELLİKLER</span>
-                <h2>Neden <span class="gradient-text">Stainless Max</span>?</h2>
-                <p>Rakiplerinden ayıran güçlü özelliklerle donatılmış, profesyoneller için tasarlandı.</p>
+                <span class="section-tag gradient-bg-text"><i class="fa-solid fa-wand-magic-sparkles"></i> YAPAY ZEKA
+                    DESTEKLİ</span>
+                <h2>Sizi Rakiplerinizden <span class="gradient-text-wow">Ayıran Güç</span></h2>
+                <p>İçerik üretimini manuel bir iş olmaktan çıkarıp, tam otomatik bir sisteme bağlayın.</p>
             </div>
             <div class="feature-grid">
-                <div class="feature-card glass anim-fade">
-                    <div class="feature-icon"><i class="fa-solid fa-bolt-lightning"></i></div>
-                    <h3>Işık Hızında Performans</h3>
-                    <p>Yerel masaüstü mimarisi sayesinde sıfır gecikme. Tarayıcı tabanlı araçların aksine, her şey
-                        doğrudan bilgisayarınızda çalışır.</p>
-                    <div class="feature-tag">Yerel Çalışma</div>
+                <div class="feature-card glass anim-fade feature-glow-1">
+                    <div class="feature-icon accent-pink"><i class="fa-solid fa-brain"></i></div>
+                    <h3>AI Video Üretimi</h3>
+                    <p>Konuyu verin, Gemini AI senaryoyu yazsın, akıllı seslendirme okusun ve görseller/videolar
+                        otomatik olarak kurgulanıp hazır hale gelsin.</p>
+                    <div class="feature-tag">Sıfır Efor</div>
                 </div>
-                <div class="feature-card glass anim-fade">
-                    <div class="feature-icon accent-pink"><i class="fa-solid fa-shield-halved"></i></div>
-                    <h3>Askeri Düzey Güvenlik</h3>
-                    <p>API anahtarları, hesap bilgileri ve tüm verileriniz yalnızca sizin cihazınızda şifreli olarak
-                        saklanır. Hiçbir sunucuya gönderilmez.</p>
-                    <div class="feature-tag">%100 Yerel</div>
-                </div>
-                <div class="feature-card glass anim-fade">
-                    <div class="feature-icon accent-cyan"><i class="fa-solid fa-robot"></i></div>
-                    <h3>Akıllı Otomasyon</h3>
-                    <p>Tekrarlayan görevleri tanımlayın, zamanlayın ve arka planda otomatik çalıştırın. 7/24 kesintisiz
-                        çalışma.</p>
+                <div class="feature-card glass anim-fade feature-glow-2">
+                    <div class="feature-icon yt-red"><i class="fa-brands fa-youtube"></i></div>
+                    <h3>Sosyal Medya Otomasyonu</h3>
+                    <p>Üretilen videoları hedef kitlenizin en aktif olduğu saatlere göre zamanlayın. TikTok ve YouTube
+                        Shorts'a eş zamanlı otomatik yükleme yapın.</p>
                     <div class="feature-tag">7/24 Aktif</div>
                 </div>
-                <div class="feature-card glass anim-fade">
-                    <div class="feature-icon accent-green"><i class="fa-solid fa-users-gear"></i></div>
+                <div class="feature-card glass anim-fade feature-glow-3">
+                    <div class="feature-icon tt-cyan"><i class="fa-solid fa-users-viewfinder"></i></div>
                     <h3>Çoklu Hesap Yönetimi</h3>
-                    <p>Sınırsız hesabı tek panelden yönetin. Her hesap bağımsız çalışır, birbirini etkilemez.</p>
-                    <div class="feature-tag">Sınırsız</div>
+                    <p>Onlarca farklı YouTube ve TikTok kanalını tek panelden yönetin. Farklı konseptler için
+                        birbirinden bağımsız nişler oluşturun.</p>
+                    <div class="feature-tag">Sınırsız Ölçek</div>
                 </div>
-                <div class="feature-card glass anim-fade">
+                <div class="feature-card glass anim-fade" style="margin-top: 15px;">
+                    <div class="feature-icon accent-green"><i class="fa-solid fa-shield-halved"></i></div>
+                    <h3>Masaüstü Güvenliği</h3>
+                    <p>API anahtarları ve şifreler asla buluta gitmez. Tüm veriler kendi bilgisayarınızda şifreli kalır.
+                        Tam yerel kontrol!</p>
+                    <div class="feature-tag">%100 Güvenli</div>
+                </div>
+                <div class="feature-card glass anim-fade" style="margin-top: 15px;">
                     <div class="feature-icon accent-orange"><i class="fa-solid fa-chart-line"></i></div>
-                    <h3>Gerçek Zamanlı İzleme</h3>
-                    <p>Canlı log akışı, performans grafikleri ve anlık bildirimlerle tüm işlemlerinizi gözlemleyin.</p>
-                    <div class="feature-tag">Canlı Takip</div>
+                    <h3>Canlı Süreç Takibi</h3>
+                    <p>Hangi videonun render edildiğini, hangi hesaba yüklendiğini anlık log ekranından film izler gibi
+                        takip edin.</p>
+                    <div class="feature-tag">Şeffaf Akış</div>
                 </div>
-                <div class="feature-card glass anim-fade">
-                    <div class="feature-icon accent-purple"><i class="fa-solid fa-puzzle-piece"></i></div>
-                    <h3>Modüler Mimari</h3>
-                    <p>İhtiyacınıza göre genişletilebilir yapı. Yeni modüller ekleyin, mevcut olanları özelleştirin.</p>
-                    <div class="feature-tag">Esnek</div>
+                <div class="feature-card glass anim-fade" style="margin-top: 15px;">
+                    <div class="feature-icon accent-purple"><i class="fa-solid fa-microchip"></i></div>
+                    <h3>Donanım Hızlandırma</h3>
+                    <p>Arka planda çalışan FFmpeg altyapısı sayesinde videolar en yüksek kalitede ve en kısa sürede
+                        encode edilir.</p>
+                    <div class="feature-tag">Işık Hızı</div>
                 </div>
             </div>
         </div>
@@ -178,32 +191,32 @@
     <section id="showcase" class="section showcase">
         <div class="container">
             <div class="section-header anim-fade">
-                <span class="section-tag"><i class="fa-solid fa-images"></i> UYGULAMA</span>
-                <h2>Uygulamayı <span class="gradient-text">Yakından Tanıyın</span></h2>
-                <p>Gerçek ekran görüntüleriyle Stainless Max'in sunduğu deneyimi keşfedin.</p>
+                <span class="section-tag"><i class="fa-solid fa-desktop"></i> UYGULAMA ARAYÜZÜ</span>
+                <h2>Kontrol Paneli İle <span class="gradient-text-wow">Tanışın</span></h2>
+                <p>Bir video ajansının tüm yetenekleri, tek bir masaüstü penceresinde.</p>
             </div>
 
             <!-- Showcase 1 -->
             <div class="showcase-row anim-fade">
                 <div class="showcase-text">
-                    <span class="showcase-badge"><i class="fa-solid fa-gauge-high"></i> Ana Dashboard</span>
-                    <h3>Tüm Metrikler Tek Ekranda</h3>
-                    <p>Hesap istatistikleriniz, aktif görevleriniz ve performans grafikleriniz anlık olarak güncellenir.
-                        Sezgisel arayüz sayesinde karmaşık verileri kolayca anlayın.</p>
+                    <span class="showcase-badge gradient-border-badge"><i class="fa-solid fa-gauge-high"></i> Komuta
+                        Merkezi</span>
+                    <h3>Tüm Kanallar Elinizin Altında</h3>
+                    <p>YouTube Shorts ve TikTok hesaplarınızın aktif görevlerini, render durumlarını ve api
+                        bağlantılarınızı tek ekrandan gözlemleyin.</p>
                     <ul class="showcase-list">
-                        <li><i class="fa-solid fa-check-circle"></i> Anlık hesap durumu göstergeleri</li>
-                        <li><i class="fa-solid fa-check-circle"></i> Performans trend grafikleri</li>
-                        <li><i class="fa-solid fa-check-circle"></i> Aktif görev izleme paneli</li>
-                        <li><i class="fa-solid fa-check-circle"></i> Hızlı işlem kısayolları</li>
+                        <li><i class="fa-solid fa-check-circle"></i> Anlık üretim durumu göstergeleri</li>
+                        <li><i class="fa-solid fa-check-circle"></i> Sorunsuz API entegrasyonu</li>
+                        <li><i class="fa-solid fa-check-circle"></i> Renderlanan ve bekleyen video kuyruğu</li>
                     </ul>
                 </div>
-                <div class="showcase-image">
+                <div class="showcase-image hover-tilt">
                     <div class="showcase-glow"></div>
-                    <div class="mockup-window small">
+                    <div class="mockup-window small wow-shadow">
                         <div class="mockup-titlebar">
                             <div class="titlebar-dots"><span class="dot red"></span><span
                                     class="dot yellow"></span><span class="dot green"></span></div>
-                            <span class="titlebar-text">Dashboard</span>
+                            <span class="titlebar-text">Ana Panel</span>
                         </div>
                         <img src="assets/dashboard1.png" alt="Dashboard" class="mockup-screen" loading="lazy">
                     </div>
@@ -213,20 +226,20 @@
             <!-- Showcase 2 -->
             <div class="showcase-row reverse anim-fade">
                 <div class="showcase-text">
-                    <span class="showcase-badge pink"><i class="fa-solid fa-list-check"></i> Otomasyon Merkezi</span>
-                    <h3>Görevlerinizi Otomatikleştirin</h3>
-                    <p>Görev kuyruğu, ilerleme çubukları ve gerçek zamanlı log akışı ile her otomasyonu detaylıca takip
-                        edin. Zamanlayıcılarla 7/24 çalışma imkânı.</p>
+                    <span class="showcase-badge pink-cyan-badge"><i class="fa-brands fa-tiktok"></i> <i
+                            class="fa-brands fa-youtube"></i> Çift Platform Dağıtımı</span>
+                    <h3>Üret ve Hemen Paylaş</h3>
+                    <p>Yapay zeka asistanı videoyu kurguladıktan hemen sonra, belirlediğiniz başlık, hashtag ve açıklama
+                        şablonları ile doğrudan hedefe gönderir.</p>
                     <ul class="showcase-list">
-                        <li><i class="fa-solid fa-check-circle"></i> Sürükle-bırak görev sıralaması</li>
-                        <li><i class="fa-solid fa-check-circle"></i> Gerçek zamanlı aktivite logu</li>
-                        <li><i class="fa-solid fa-check-circle"></i> Zamanlayıcı ve tetikleyiciler</li>
-                        <li><i class="fa-solid fa-check-circle"></i> Hata durumunda otomatik yeniden deneme</li>
+                        <li><i class="fa-solid fa-check-circle"></i> Platforma özel hashtag desteği</li>
+                        <li><i class="fa-solid fa-check-circle"></i> Gönderi durumlarının logları</li>
+                        <li><i class="fa-solid fa-check-circle"></i> Otomatik zamanlama algoritmaları</li>
                     </ul>
                 </div>
-                <div class="showcase-image">
+                <div class="showcase-image hover-tilt-reverse">
                     <div class="showcase-glow pink"></div>
-                    <div class="mockup-window small">
+                    <div class="mockup-window small wow-shadow-pink">
                         <div class="mockup-titlebar">
                             <div class="titlebar-dots"><span class="dot red"></span><span
                                     class="dot yellow"></span><span class="dot green"></span></div>
@@ -236,69 +249,43 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Showcase 3 -->
-            <div class="showcase-row anim-fade">
-                <div class="showcase-text">
-                    <span class="showcase-badge green"><i class="fa-solid fa-lock"></i> Güvenlik Merkezi</span>
-                    <h3>Verileriniz Yalnızca Sizde</h3>
-                    <p>API anahtarlarınızı yönetin, güvenlik ayarlarınızı kontrol edin ve tüm bağlantılarınızı tek
-                        panelden izleyin. Her şey şifreli, her şey yerel.</p>
-                    <ul class="showcase-list">
-                        <li><i class="fa-solid fa-check-circle"></i> Şifreli API anahtar yönetimi</li>
-                        <li><i class="fa-solid fa-check-circle"></i> Tek tıkla güvenlik denetimi</li>
-                        <li><i class="fa-solid fa-check-circle"></i> Bağlantı durumu izleme</li>
-                        <li><i class="fa-solid fa-check-circle"></i> Otomatik oturum yönetimi</li>
-                    </ul>
-                </div>
-                <div class="showcase-image">
-                    <div class="showcase-glow green"></div>
-                    <div class="mockup-window small">
-                        <div class="mockup-titlebar">
-                            <div class="titlebar-dots"><span class="dot red"></span><span
-                                    class="dot yellow"></span><span class="dot green"></span></div>
-                            <span class="titlebar-text">Güvenlik</span>
-                        </div>
-                        <img src="assets/dashboard3.png" alt="Güvenlik Paneli" class="mockup-screen" loading="lazy">
-                    </div>
-                </div>
-            </div>
         </div>
     </section>
 
     <!-- HOW IT WORKS -->
-    <section id="how-it-works" class="section how-it-works">
+    <section id="how-it-works" class="section how-it-works" style="background: rgba(0,0,0,0.3);">
         <div class="container">
             <div class="section-header anim-fade">
-                <span class="section-tag"><i class="fa-solid fa-diagram-project"></i> ADIMLAR</span>
-                <h2>Dakikalar İçinde <span class="gradient-text">Başlayın</span></h2>
-                <p>Kurulum ve kullanım inanılmaz kolay. Sadece 3 adım.</p>
+                <span class="section-tag"><i class="fa-solid fa-route"></i> İŞ AKIŞI</span>
+                <h2>Sadece <span class="gradient-text-wow">3 Adımda</span> Viral Olun</h2>
+                <p>Yorulmadan yüzlerce gönderi hazırlamanın en kısa yolu.</p>
             </div>
             <div class="steps-grid">
                 <div class="step-card anim-fade">
-                    <div class="step-number">01</div>
-                    <div class="step-icon"><i class="fa-solid fa-download"></i></div>
-                    <h3>İndirin & Kurun</h3>
-                    <p>Tek tıkla kurulum dosyasını indirin. Otomatik WebView2 desteği ile saniyeler içinde hazır.</p>
-                </div>
-                <div class="step-connector anim-fade">
-                    <div class="connector-line"></div>
-                </div>
-                <div class="step-card anim-fade">
-                    <div class="step-number">02</div>
+                    <div class="step-number neon-text">01</div>
                     <div class="step-icon"><i class="fa-solid fa-key"></i></div>
-                    <h3>Hesapları Bağlayın</h3>
-                    <p>API anahtarlarınızı girin, hesaplarınızı ekleyin. Sezgisel kurulum sihirbazı sizi yönlendirir.
+                    <h3>Anahtarları Ekle</h3>
+                    <p>Gemini AI ve isteğe bağlı Pexels anahtarlarını girin, TikTok/YouTube hesaplarınızı tanımlayın.
                     </p>
                 </div>
                 <div class="step-connector anim-fade">
-                    <div class="connector-line"></div>
+                    <div class="connector-line pulse-bg"></div>
+                </div>
+                <div class="step-card anim-fade" style="transform: translateY(-20px);">
+                    <div class="step-number neon-text-pink">02</div>
+                    <div class="step-icon"><i class="fa-solid fa-clapperboard"></i></div>
+                    <h3>Görevi Seç</h3>
+                    <p>İçerik türünü seçin ("Finans Motivasoynu" veya "Tarihi Bilgiler" gibi). Senaryo ve sesiniz
+                        otomatik yazılır.</p>
+                </div>
+                <div class="step-connector anim-fade">
+                    <div class="connector-line pulse-bg-red"></div>
                 </div>
                 <div class="step-card anim-fade">
-                    <div class="step-number">03</div>
-                    <div class="step-icon"><i class="fa-solid fa-rocket"></i></div>
-                    <h3>Otomasyonu Başlatın</h3>
-                    <p>Görevleri tanımlayın ve çalıştırın. Stainless Max arka planda 7/24 sizin için çalışır.</p>
+                    <div class="step-number neon-text-red">03</div>
+                    <div class="step-icon"><i class="fa-solid fa-satellite-dish"></i></div>
+                    <h3>Arkanıza Yaslanın</h3>
+                    <p>Uygulama videoyu montajlar, render alır ve vakti geldiğinde doğrudan kanallarınıza yayınlar!</p>
                 </div>
             </div>
         </div>
@@ -307,24 +294,32 @@
     <!-- DOWNLOAD CTA -->
     <section id="download" class="section download-cta">
         <div class="container">
-            <div class="cta-card glass anim-fade">
-                <div class="cta-glow"></div>
-                <img src="assets/logo.png" alt="Logo" class="cta-logo">
-                <h2>Stainless Max'i <span class="gradient-text">Bugün</span> Deneyin</h2>
-                <p>Ücretsiz indirin, dakikalar içinde kurulumu tamamlayın ve masaüstü otomasyonunun gücünü keşfedin.</p>
+            <div class="cta-card glass anim-fade wow-border">
+                <div class="cta-glow-complex"></div>
+                <div class="cta-floating-icons">
+                    <i class="fa-brands fa-tiktok float-item"
+                        style="color:#00f2fe; left: 10%; animation-delay: 0s;"></i>
+                    <i class="fa-brands fa-youtube float-item"
+                        style="color:#ff0000; right: 10%; animation-delay: 2s;"></i>
+                </div>
+                <img src="assets/logo.png" alt="Logo" class="cta-logo pulse-logo">
+                <h2>Otonom Video Çağına <span class="gradient-text-wow">Katılın</span></h2>
+                <p>Bir kez kurun, aylar boyu kendi kendine içerik üretip paylaşan yapay zeka ajanınızı serbest bırakın!
+                </p>
+
                 <div class="download-buttons"
-                    style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                    style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; position: relative; z-index: 10;">
                     <a href="https://github.com/enespaslanmaz/stainlessmax/releases/download/v2.1.0/StainlessMax_Setup_v2.1.0.exe"
-                        class="btn btn-primary btn-xl" download>
+                        class="btn btn-primary btn-xl shine-hover" download>
                         <i class="fa-brands fa-windows"></i> Windows İçin İndir
                         <span class="btn-shine"></span>
                     </a>
                     <a href="https://github.com/enespaslanmaz1-sudo/stainlessmax/releases/download/v2.2.0/StainlessMax_macOS.dmg"
-                        class="btn btn-glow btn-xl">
+                        class="btn btn-glow btn-xl neon-border-strong">
                         <i class="fa-brands fa-apple"></i> macOS İçin İndir
                     </a>
                 </div>
-                <div class="cta-meta">
+                <div class="cta-meta" style="position: relative; z-index: 10;">
                     <span><i class="fa-solid fa-hard-drive"></i> ~1.2 GB</span>
                     <span><i class="fa-solid fa-laptop-code"></i> Windows & macOS</span>
                     <span><i class="fa-solid fa-shield-check"></i> Virüssüz & Güvenli</span>
@@ -338,11 +333,11 @@
         <div class="container">
             <div class="section-header anim-fade">
                 <span class="section-tag"><i class="fa-solid fa-envelope"></i> İLETİŞİM</span>
-                <h2>Bizimle <span class="gradient-text">İletişime Geçin</span></h2>
-                <p>Sorularınız, önerileriniz veya destek talepleriniz için aşağıdaki adresi kullanabilirsiniz.</p>
+                <h2>Bizimle <span class="gradient-text-wow">İletişime Geçin</span></h2>
+                <p>Özel modül istekleri veya destek talepleriniz için bize ulaşın.</p>
             </div>
-            <div class="contact-card glass anim-fade">
-                <div class="contact-icon-wrapper">
+            <div class="contact-card glass anim-fade wow-shadow-cyan">
+                <div class="contact-icon-wrapper pulse-bg">
                     <i class="fa-solid fa-paper-plane"></i>
                 </div>
                 <h3>E-posta ile Ulaşın</h3>
@@ -362,11 +357,11 @@
                     <img src="assets/logo.png" alt="Logo" class="footer-logo-img">
                     <span>Stainless <span class="logo-accent">Max</span></span>
                 </div>
-                <p class="footer-desc">Hesap yönetimi ve otomasyonun geleceği.</p>
+                <p class="footer-desc">Yapay Zeka Destekli Otonom Video Üretim Platformu.</p>
             </div>
             <div class="footer-links">
                 <a href="#features">Özellikler</a>
-                <a href="#showcase">Ekran Görüntüleri</a>
+                <a href="#showcase">Arayüz</a>
                 <a href="#how-it-works">Nasıl Çalışır</a>
                 <a href="#contact">İletişim</a>
             </div>
