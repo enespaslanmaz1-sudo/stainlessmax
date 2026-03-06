@@ -34,6 +34,9 @@ if sys.platform == "win32":
 if getattr(sys, 'frozen', False):
     # PyInstaller EXE: executable'ın bulunduğu klasör
     BASE_DIR = os.path.dirname(sys.executable)
+    # macOS .app bundle'ları için Resources klasörüne yönlendir (add-data oraya gider)
+    if sys.platform == 'darwin' and BASE_DIR.endswith('MacOS'):
+        BASE_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'Resources'))
 else:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 os.chdir(BASE_DIR)
@@ -353,23 +356,28 @@ def main():
     logger.info("Server ready!")
 
     # ================================================
-    # ADIM 2: UI Aç — PyWebView dene, olmazsa Chrome/Edge
+    # ADIM 2: UI Aç — Cross-Platform (Mac/Win) Native Window
     # ================================================
     ui_opened = False
 
-    # --- Yöntem A: WebView2 kuruluysa PyWebView ---
-    if _is_webview2_installed():
-        logger.info("WebView2 found — trying PyWebView...")
+    if sys.platform == 'darwin':
+        # MacOS her zaman native WebKit (Safari) engine destekler.
+        logger.info("macOS detected — directly launching PyWebView (WebKit)...")
         ui_opened = _try_pywebview(url)
-
-    # --- WebView2 yoksa otomatik kur ve tekrar dene ---
-    if not ui_opened and not _is_webview2_installed():
-        logger.warning("WebView2 NOT installed — trying auto-install...")
-        if _install_webview2_silent():
-            logger.info("WebView2 installed! Trying PyWebView...")
+    else:
+        # --- Yöntem A: Windows'ta WebView2 kuruluysa PyWebView ---
+        if _is_webview2_installed():
+            logger.info("WebView2 found — trying PyWebView...")
             ui_opened = _try_pywebview(url)
 
-    # --- Yöntem B: Chrome / Edge App Mode Fallback ---
+        # --- WebView2 yoksa otomatik kur ve tekrar dene ---
+        if not ui_opened and not _is_webview2_installed():
+            logger.warning("WebView2 NOT installed — trying auto-install...")
+            if _install_webview2_silent():
+                logger.info("WebView2 installed! Trying PyWebView...")
+                ui_opened = _try_pywebview(url)
+
+    # --- Windows'ta Yöntem B (Mac için de fallback): Chrome / Edge App Mode ---
     if not ui_opened:
         logger.info("Falling back to Chrome/Edge App Mode...")
         _open_browser_app_mode(url)
