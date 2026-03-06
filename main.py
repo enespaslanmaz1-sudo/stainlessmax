@@ -713,6 +713,11 @@ def dashboard_view():
     import time
     return render_template('dashboard_v2.html', cache_bust=int(time.time()))
 
+@app.route('/setup')
+def setup_view():
+    import time
+    return render_template('setup.html', cache_bust=int(time.time()))
+
 @app.route('/api/status')
 def status():
     return jsonify({"status": "online", "mode": "DESKTOP_APP"})
@@ -1097,6 +1102,27 @@ def auth_update_keys():
     data = request.json or {}
     try:
         user_store.update_user_api_keys(g.user_id, data)
+        
+        # API anahtarlarını ConfigManager'a (settings.json) da yansıt
+        if get_config_manager:
+            try:
+                manager = get_config_manager()
+                settings_update = {"api_keys": {}}
+                key_map = {
+                    "GEMINI_API_KEY": "gemini",
+                    "PEXELS_API_KEY": "pexels",
+                    "TELEGRAM_BOT_TOKEN": "telegram_token",
+                    "TELEGRAM_CHAT_ID": "telegram_admin",
+                }
+                for src, dest in key_map.items():
+                    if data.get(src):
+                        settings_update["api_keys"][dest] = data[src]
+                if settings_update["api_keys"]:
+                    manager.update_settings(settings_update)
+                    logger.info(f"✅ API anahtarları settings.json'a yazıldı: {list(settings_update['api_keys'].keys())}")
+            except Exception as cfg_err:
+                logger.warning(f"⚠️ ConfigManager güncelleme hatası: {cfg_err}")
+        
         return jsonify({"message": "API anahtarları başarıyla güncellendi ve kurulum tamamlandı."})
     except Exception as e:
         logger.error(f"update-keys error: {str(e)}")
@@ -1412,11 +1438,12 @@ def meta_json():
 
 
 @app.route('/api/accounts', methods=['GET'])
+@require_auth
 def get_accounts():
-    """Hesapları ve ayarları döndür"""
+    """Hesapları ve ayarları döndür (Kullanıcıya özel)"""
     try:
         config = {
-            "version": "v2.1",
+            "version": "v2.2.1",
             "theme": "dark",
             "language": "en",
             "api_keys": {},
@@ -1427,7 +1454,7 @@ def get_accounts():
         # Load accounts safely
         if HESAPLAR_AVAILABLE:
             from AppCore.modules.account_manager import AccountManager
-            mgr = AccountManager()
+            mgr = AccountManager(user_id=g.user_id, user_store=user_store)
             
             # YouTube
             youtube_accs = mgr.get_active_accounts("youtube")
@@ -1457,12 +1484,13 @@ def get_accounts():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/accounts/add', methods=['POST'])
+@require_auth
 def add_account():
-    """Add new account"""
+    """Add new account (Kullanıcıya özel)"""
     try:
         data = request.json
         from AppCore.modules.account_manager import AccountManager, Account
-        mgr = AccountManager()
+        mgr = AccountManager(user_id=g.user_id, user_store=user_store)
         
         # Basic validation
         if not data.get("id") or not data.get("platform"):
@@ -1480,7 +1508,7 @@ def add_account():
         )
         
         # Limit hesaplama (Max 5 YT, 5 TT)
-        all_accounts = mgr.get_all_accounts()
+        all_accounts = mgr.accounts
         yt_count = sum(1 for a in all_accounts if getattr(a, 'platform', '') == 'youtube')
         tt_count = sum(1 for a in all_accounts if getattr(a, 'platform', '') == 'tiktok')
         
@@ -1499,14 +1527,15 @@ def add_account():
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/accounts/delete', methods=['POST'])
+@require_auth
 def delete_account():
-    """Delete account"""
+    """Delete account (Kullanıcıya özel)"""
     try:
         data = request.json
         acc_id = data.get("id")
         
         from AppCore.modules.account_manager import AccountManager
-        mgr = AccountManager()
+        mgr = AccountManager(user_id=g.user_id, user_store=user_store)
         
         if mgr.delete_account(acc_id):
             return jsonify({"success": True})

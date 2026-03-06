@@ -1,0 +1,9 @@
+﻿youtube:
+kanal_adi_1
+id:client_id_buraya
+secret:client_secret_buraya
+
+tiktok:
+kanal_adi_1
+e-posta:ornek@mail.com
+şifre:sifre_buraya

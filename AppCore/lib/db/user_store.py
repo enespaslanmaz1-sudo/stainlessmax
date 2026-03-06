@@ -73,11 +73,18 @@ class UserStore:
                     plan TEXT DEFAULT 'free',
                     promo_code TEXT,
                     api_keys_encrypted TEXT,
+                    accounts_encrypted TEXT,
                     setup_complete BOOLEAN DEFAULT 0,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     last_login TIMESTAMP
                 )
             ''')
+            
+            # Geriye dönük uyumluluk (Mevcut tabloya accounts_encrypted sütununu ekle)
+            try:
+                c.execute("ALTER TABLE users ADD COLUMN accounts_encrypted TEXT")
+            except sqlite3.OperationalError:
+                pass # Sütun zaten varsa hata verir, yoksay
             
             # Daily Usage tablosu
             c.execute('''
@@ -148,9 +155,9 @@ class UserStore:
                     c.execute("UPDATE promo_codes SET use_count = use_count + 1 WHERE code = ?", (promo_code,))
             
             c.execute('''
-                INSERT INTO users (id, name, surname, email, password_hash, plan, promo_code, api_keys_encrypted)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (user_id, name, surname, email, password_hash, plan, promo_code, self.encrypt_json({})))
+                INSERT INTO users (id, name, surname, email, password_hash, plan, promo_code, api_keys_encrypted, accounts_encrypted)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (user_id, name, surname, email, password_hash, plan, promo_code, self.encrypt_json({}), self.encrypt_json({"accounts": []})))
             
             conn.commit()
             return user_id
@@ -170,6 +177,7 @@ class UserStore:
             if row:
                 d = dict(row)
                 d['api_keys'] = self.decrypt_json(d.get('api_keys_encrypted', ''))
+                d['accounts'] = self.decrypt_json(d.get('accounts_encrypted', ''))
                 return d
             return None
 
@@ -178,6 +186,21 @@ class UserStore:
         with self.get_connection() as conn:
             c = conn.cursor()
             c.execute("UPDATE users SET api_keys_encrypted = ?, setup_complete = 1 WHERE id = ?", (encrypted, user_id))
+            conn.commit()
+            
+    def get_user_accounts(self, user_id: str) -> dict:
+        """Kullanıcının platform hesaplarını JSON formatında getirir"""
+        user = self.get_user_by_id(user_id)
+        if user and user.get('accounts'):
+            return user['accounts']
+        return {"accounts": []}
+        
+    def update_user_accounts(self, user_id: str, accounts_data: dict):
+        """Kullanıcının platform hesaplarını kaydeder"""
+        encrypted = self.encrypt_json(accounts_data)
+        with self.get_connection() as conn:
+            c = conn.cursor()
+            c.execute("UPDATE users SET accounts_encrypted = ? WHERE id = ?", (encrypted, user_id))
             conn.commit()
             
     def update_user_password(self, user_id: str, new_password_hash: str):

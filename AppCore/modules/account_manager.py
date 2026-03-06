@@ -38,14 +38,35 @@ class Account:
 class AccountManager:
     """Manage multiple accounts for YouTube and TikTok"""
     
-    def __init__(self, config_path: str = "config/accounts.json"):
+    def __init__(self, config_path: str = "config/accounts.json", user_id: str = None, user_store = None):
         self.config_path = Path(config_path)
+        self.user_id = user_id
+        self.user_store = user_store
         self.accounts: List[Account] = []
         self.load_accounts()
     
     def load_accounts(self):
-        """Load accounts from JSON or hesaplar.txt"""
-        # Önce hesaplar.txt'yi kontrol et
+        """Load accounts from DB, JSON or hesaplar.txt"""
+        # 1. Kullanıcı bazlı Cloud/Local DB Storage (Multi-tenant)
+        if self.user_id and self.user_store:
+            try:
+                data = self.user_store.get_user_accounts(self.user_id)
+                accounts_data = data.get("accounts", [])
+                self.accounts = []
+                for acc_data in accounts_data:
+                    # Eksik alanları varsayılan değerlerle doldur
+                    acc_data.setdefault("client_id", "")
+                    acc_data.setdefault("client_secret", "")
+                    acc_data.setdefault("name", "")
+                    acc_data.setdefault("username", "")
+                    if "id" in acc_data and "platform" in acc_data:
+                        self.accounts.append(Account(**acc_data))
+                print(f"[AccountManager] {len(self.accounts)} hesap yüklendi (Kullanıcı: {self.user_id})")
+                return
+            except Exception as db_err:
+                print(f"[AccountManager] DB okuma hatası: {db_err}")
+
+        # 2. Önce hesaplar.txt'yi kontrol et
         base_dir = Path(__file__).parent.parent
         hesaplar_txt = base_dir / "hesaplar.txt"
         if hesaplar_txt.exists():
@@ -53,7 +74,7 @@ class AccountManager:
             if self.load_from_hesaplar_txt():
                 return
         
-        # hesaplar.txt yoksa veya parse başarısızsa, JSON config kullan
+        # 3. JSON config kullan
         if not self.config_path.exists():
             self._create_default_accounts()
             return
@@ -149,12 +170,20 @@ class AccountManager:
         self.load_accounts()
     
     def save_accounts(self):
-        """Save accounts to JSON"""
+        """Save accounts to UserStore DB or JSON"""
         try:
+            accounts_list = [asdict(acc) for acc in self.accounts]
+            
+            # 1. Kullanıcı bazlı Storage (Multi-tenant)
+            if self.user_id and self.user_store:
+                self.user_store.update_user_accounts(self.user_id, {"accounts": accounts_list})
+                return True
+
+            # 2. Local Fallback JSON
             config = {
                 "version": "2.0",
-                "updated_at": "2026-02-05",
-                "accounts": [asdict(acc) for acc in self.accounts]
+                "updated_at": "2026-03-06",
+                "accounts": accounts_list
             }
             
             with open(self.config_path, 'w', encoding='utf-8') as f:

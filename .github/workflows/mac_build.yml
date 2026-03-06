@@ -46,6 +46,7 @@ jobs:
             --add-data "website:website" \
             --add-data "assets:assets" \
             --add-data "config:config" \
+            --add-data "stainlessmax_logo.png:." \
             --hidden-import=Flask \
             --hidden-import=webview \
             --hidden-import=google.genai \
