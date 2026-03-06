@@ -1,0 +1,35 @@
+..........sssssssssss.......................sssssssssFss................ [ 85%]
+............                                                             [100%]
+================================== FAILURES ===================================
+_______ test_multitenant_migration_file_exists_and_has_expected_markers _______
+
+    def test_multitenant_migration_file_exists_and_has_expected_markers():
+        migration_path = Path("StainlessMax/System/migrations/versions/20260217_02_multitenant_foundation.py")
+>       content = migration_path.read_text(encoding="utf-8")
+
+AppCore\tests\test_migration_multitenant_sanity.py:6: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\pathlib\_local.py:546: in read_text
+    return PathBase.read_text(self, encoding, errors, newline)
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\pathlib\_abc.py:632: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = WindowsPath('StainlessMax/System/migrations/versions/20260217_02_multitenant_foundation.py')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+E       FileNotFoundError: [Errno 2] No such file or directory: 'StainlessMax\\System\\migrations\\versions\\20260217_02_multitenant_foundation.py'
+
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\pathlib\_local.py:537: FileNotFoundError
+=========================== short test summary info ===========================
+FAILED AppCore/tests/test_migration_multitenant_sanity.py::test_multitenant_migration_file_exists_and_has_expected_markers
+1 failed, 61 passed, 22 skipped in 121.47s (0:02:01)

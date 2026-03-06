@@ -105,15 +105,21 @@ class SystemHealthCheck:
         
         # 2. Assets Check
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        assets_dir = os.path.join(base_dir, "assets")
         
+        import sys
+        if sys.platform == 'darwin':
+            assets_dir = os.path.expanduser("~/Library/Application Support/StainlessMax/assets")
+            output_dir = os.path.expanduser("~/Movies/StainlessMax")
+        else:
+            assets_dir = os.path.join(base_dir, "assets")
+            output_dir = os.path.join(base_dir, "outputs")
+            
         if os.path.exists(assets_dir):
              results["assets"] = {"status": "ok", "message": "Assets klasörü mevcut."}
         else:
              results["assets"] = {"status": "error", "message": "Assets klasörü bulunamadı (Video üretimi için gerekli)!"}
              
         # 3. Output Write Permission
-        output_dir = os.path.join(base_dir, "outputs")
         try:
             if not os.path.exists(output_dir):
                 os.makedirs(output_dir)

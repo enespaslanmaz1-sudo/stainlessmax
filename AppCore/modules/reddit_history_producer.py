@@ -31,9 +31,17 @@ class RedditHistoryProducer:
     def __init__(self, base_dir: Path = None):
         """Initialize producer"""
         self.base_dir = base_dir or Path(__file__).resolve().parent.parent.parent
-        self.gameplay_dir = self.base_dir / "assets" / "gameplay"
-        self.output_dir = self.base_dir / "outputs"
-        self.history_file = self.base_dir / "db" / "reddit_history.json"
+        
+        import sys, os
+        if sys.platform == 'darwin':
+            appdata_base = Path(os.path.expanduser('~/Library/Application Support/StainlessMax'))
+            self.gameplay_dir = appdata_base / "assets" / "gameplay"
+            self.output_dir = Path(os.path.expanduser('~/Movies/StainlessMax'))
+            self.history_file = appdata_base / "db" / "reddit_history.json"
+        else:
+            self.gameplay_dir = self.base_dir / "assets" / "gameplay"
+            self.output_dir = self.base_dir / "outputs"
+            self.history_file = self.base_dir / "db" / "reddit_history.json"
         
         # Klasörleri oluştur
         self.gameplay_dir.mkdir(parents=True, exist_ok=True)

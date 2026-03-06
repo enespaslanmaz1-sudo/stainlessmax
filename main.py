@@ -134,7 +134,17 @@ except ImportError as e:
 BASE_DIR = Path(__file__).resolve().parent
 
 # ===== PERSISTENT DATA DIRECTORY =====
-USER_DATA_DIR = Path(os.environ.get('APPDATA', str(BASE_DIR))) / 'StainlessMax'
+import sys
+
+if sys.platform == 'darwin':
+    # macOS: ~/Library/Application Support/StainlessMax
+    appdata_base = os.path.expanduser('~/Library/Application Support')
+elif sys.platform == 'win32':
+    appdata_base = os.environ.get('APPDATA', str(BASE_DIR))
+else:
+    appdata_base = os.path.expanduser('~/.config')
+
+USER_DATA_DIR = Path(appdata_base) / 'StainlessMax'
 USER_DATA_DIR.mkdir(parents=True, exist_ok=True)
 user_store = UserStore(USER_DATA_DIR)
 
@@ -217,7 +227,10 @@ PEXELS_API_KEY = os.getenv("PEXELS_API_KEY")
 ADMIN_SECRET_TOKEN = os.getenv("ADMIN_SECRET_TOKEN", "stainless_admin_123")
 
 # Correct Output Directory for System Consistency
-OUTPUT_DIR = BASE_DIR / "AppCore" / "outputs"
+if sys.platform == 'darwin':
+    OUTPUT_DIR = Path(os.path.expanduser('~/Movies/StainlessMax'))
+else:
+    OUTPUT_DIR = BASE_DIR / "AppCore" / "outputs"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # ===== LOGGING =====

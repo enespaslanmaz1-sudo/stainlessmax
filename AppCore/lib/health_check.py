@@ -74,11 +74,21 @@ class SystemDoctor:
             if (base_dir / "System").exists():
                 base_dir = base_dir / "System"
                 
-        paths = {
-            "Outputs": base_dir / "outputs",
-            "Temp": base_dir / "temp",
-            "Lib": base_dir / "lib"
-        }
+        import sys
+        if sys.platform == 'darwin':
+            appdata_base = Path(os.path.expanduser('~/Library/Application Support/StainlessMax'))
+            outputs_dir = Path(os.path.expanduser('~/Movies/StainlessMax'))
+            paths = {
+                "Outputs": outputs_dir,
+                "Temp": appdata_base / "temp",
+                "Lib": base_dir / "lib"
+            }
+        else:
+            paths = {
+                "Outputs": base_dir / "outputs",
+                "Temp": base_dir / "temp",
+                "Lib": base_dir / "lib"
+            }
 
         for label, path in paths.items():
             if not path.exists():

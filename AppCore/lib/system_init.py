@@ -14,15 +14,27 @@ def initialize_system():
     
     base_dir = Path(__file__).parent.parent.parent  # StainlessMax root
     
-    # Gerekli dizinleri oluştur
-    required_dirs = [
-        base_dir / "System_Data" / "outputs",
-        base_dir / "System_Data" / "clips_cache",
-        base_dir / "System_Data" / "audio",
-        base_dir / "System_Data" / "logs",
-        base_dir / "config",
-        base_dir / "temp",
-    ]
+    import sys
+    if sys.platform == 'darwin':
+        appdata_base = Path(os.path.expanduser('~/Library/Application Support/StainlessMax'))
+        outputs_dir = Path(os.path.expanduser('~/Movies/StainlessMax'))
+        required_dirs = [
+            outputs_dir,
+            appdata_base / "System_Data" / "clips_cache",
+            appdata_base / "System_Data" / "audio",
+            appdata_base / "System_Data" / "logs",
+            appdata_base / "config",
+            appdata_base / "temp",
+        ]
+    else:
+        required_dirs = [
+            base_dir / "System_Data" / "outputs",
+            base_dir / "System_Data" / "clips_cache",
+            base_dir / "System_Data" / "audio",
+            base_dir / "System_Data" / "logs",
+            base_dir / "config",
+            base_dir / "temp",
+        ]
     
     for d in required_dirs:
         d.mkdir(parents=True, exist_ok=True)

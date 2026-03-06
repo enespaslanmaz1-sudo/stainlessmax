@@ -19,13 +19,22 @@ if getattr(sys, 'frozen', False):
 else:
     BASE_DIR = Path(__file__).parent
 
-ASSETS_DIR = BASE_DIR / "assets"
-OUTPUTS_DIR = BASE_DIR / "outputs"
-TOKENS_DIR = BASE_DIR / "tokens"
+import platform
+
+if sys.platform == 'darwin':
+    appdata_base = Path(os.path.expanduser('~/Library/Application Support/StainlessMax'))
+    ASSETS_DIR = appdata_base / "assets"
+    OUTPUTS_DIR = Path(os.path.expanduser('~/Movies/StainlessMax'))
+    TOKENS_DIR = appdata_base / "tokens"
+else:
+    ASSETS_DIR = BASE_DIR / "assets"
+    OUTPUTS_DIR = BASE_DIR / "outputs"
+    TOKENS_DIR = BASE_DIR / "tokens"
+
 STOCK_FILE = BASE_DIR / "stock.json"
 
 for d in [ASSETS_DIR, OUTPUTS_DIR, TOKENS_DIR]:
-    d.mkdir(exist_ok=True)
+    d.mkdir(parents=True, exist_ok=True)
 
 CREATE_NO_WINDOW = 0x08000000 if os.name == 'nt' else 0
 

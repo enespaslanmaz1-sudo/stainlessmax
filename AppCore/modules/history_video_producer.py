@@ -36,7 +36,11 @@ class HistoryVideoProducer:
         
         # Output dizinleri - STRICT PROJECT STRUCTURE
         self.base_dir = Path(__file__).resolve().parent.parent
-        self.output_dir = self.base_dir / "outputs"
+        import sys, os
+        if sys.platform == 'darwin':
+            self.output_dir = Path(os.path.expanduser('~/Movies/StainlessMax'))
+        else:
+            self.output_dir = self.base_dir / "outputs"
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
     async def generate_daily_batch(self, count: int = 6):

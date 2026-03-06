@@ -367,7 +367,11 @@ class SystemMonitor:
     def _cleanup_old_files(self):
         """Clean up old video files"""
         try:
-            outputs_dir = self.base_dir / "outputs"
+            import sys
+            if sys.platform == 'darwin':
+                outputs_dir = Path(os.path.expanduser('~/Movies/StainlessMax'))
+            else:
+                outputs_dir = self.base_dir / "outputs"
             if outputs_dir.exists():
                 # Delete files older than 7 days
                 cutoff = time.time() - (7 * 24 * 3600)

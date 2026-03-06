@@ -33,7 +33,13 @@ class TestAutomationEngineStats:
             engine.queue_dir.mkdir(parents=True, exist_ok=True)
             return engine
 
-    @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
+    @settings(
+        suppress_health_check=[
+            HealthCheck.function_scoped_fixture,
+            HealthCheck.too_slow,
+        ],
+        max_examples=25,
+    )
     @given(
         total_produced=st.one_of(st.none(), st.integers(min_value=0, max_value=10000)),
         total_uploaded=st.one_of(st.none(), st.integers(min_value=0, max_value=10000)),

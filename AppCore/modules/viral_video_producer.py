@@ -48,7 +48,11 @@ class ViralVideoProducer:
         # Output dizinleri
         # Output dizinleri - STRICT PROJECT STRUCTURE
         # System/modules/.. -> System/outputs
-        self.output_dir = BASE_DIR / "System_Data" / "outputs"
+        import sys
+        if sys.platform == 'darwin':
+            self.output_dir = Path(os.path.expanduser('~/Movies/StainlessMax'))
+        else:
+            self.output_dir = BASE_DIR / "System_Data" / "outputs"
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.logger.info(f"ViralVideoProducer initialized. Output dir: {self.output_dir}")
 

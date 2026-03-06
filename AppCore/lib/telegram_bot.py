@@ -254,7 +254,12 @@ Kullanılabilir komutları görmek için /help yazın.
                 return
             
             try:
-                outputs_dir = self.base_dir / "outputs"
+                import sys, os
+                if sys.platform == 'darwin':
+                    outputs_dir = Path(os.path.expanduser('~/Movies/StainlessMax'))
+                else:
+                    outputs_dir = self.base_dir / "outputs"
+                
                 if not outputs_dir.exists():
                     self.bot.send_message(message.chat.id, "📂 Henüz video bulunmuyor")
                     return
