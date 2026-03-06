@@ -57,13 +57,13 @@ jobs:
 
       - name: Create DMG File (macOS Installer)
         run: |
-          create-dmg "dist/StainlessMax.app" || true
-          mv *.dmg StainlessMax_macOS.dmg || true
+          mkdir -p dmg_root
+          cp -R "dist/StainlessMax.app" dmg_root/
+          ln -s /Applications dmg_root/Applications
+          hdiutil create -volname "StainlessMax" -srcfolder dmg_root -ov -format UDZO StainlessMax_macOS.dmg
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: StainlessMax-macOS
-          path: |
-            dist/StainlessMax.app
-            StainlessMax_macOS.dmg
+          name: StainlessMax-macOS-Installer
+          path: StainlessMax_macOS.dmg
