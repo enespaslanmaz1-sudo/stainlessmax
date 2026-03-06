@@ -1,0 +1,66 @@
+name: macOS Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-mac:
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install System Dependencies (FFmpeg)
+        run: |
+          brew install ffmpeg
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f "AppCore/requirements.txt" ]; then
+            pip install -r AppCore/requirements.txt
+          fi
+          pip install Flask requests beautifulsoup4 python-dotenv
+          pip install pywebview google-genai psutil
+          pip install ffmpeg-python tornado telebot
+          pip install pyinstaller cryptography PyMuPDF reportlab
+          pip install pydantic schedule
+          
+      - name: Create DMG Setup Tool
+        run: |
+          npm install -g create-dmg
+
+      - name: Build macOS App
+        run: |
+          pyinstaller --windowed --noconfirm --clean --name "StainlessMax" \
+            --add-data "AppCore:AppCore" \
+            --add-data "website:website" \
+            --add-data "assets:assets" \
+            --add-data "config:config" \
+            --hidden-import=Flask \
+            --hidden-import=webview \
+            --hidden-import=google.genai \
+            --hidden-import=telebot \
+            --hidden-import=ffmpeg \
+            --hidden-import=tornado \
+            --hidden-import=psutil \
+            desktop_app.py
+
+      - name: Create DMG File (macOS Installer)
+        run: |
+          create-dmg "dist/StainlessMax.app" || true
+          mv *.dmg StainlessMax_macOS.dmg || true
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: StainlessMax-macOS
+          path: |
+            dist/StainlessMax.app
+            StainlessMax_macOS.dmg

@@ -1,0 +1,2874 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stainless Max - Dashboard</title>
+    <!-- External Dependencies -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- CSS -->
+    <link rel="stylesheet" href="/static/css/dashboard_v2.css?v={{ cache_bust }}">
+
+    <style>
+        /* Extra styles for toggle and dynamic visibility */
+        .lang-toggle {
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-left: auto;
+        }
+
+        .lang-toggle:hover {
+            color: var(--text-primary);
+        }
+
+        /* Progress Notification */
+        .progress-notification {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 380px;
+            background: linear-gradient(135deg, rgba(20, 20, 30, 0.98), rgba(30, 30, 45, 0.98));
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(99, 102, 241, 0.2);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+            animation: slideInRight 0.3s ease-out;
+            font-family: 'Inter', sans-serif;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .progress-notification.closing {
+            animation: slideOutRight 0.3s ease-in forwards;
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .progress-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .progress-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .progress-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .progress-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+
+        .progress-close:hover {
+            color: #fff;
+        }
+
+        .progress-status {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            min-height: 20px;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .markdown-body {
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .markdown-body h1,
+        .markdown-body h2,
+        .markdown-body h3 {
+            color: var(--accent);
+            margin-top: 10px;
+        }
+
+        .markdown-body code {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .markdown-body pre {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        .markdown-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+
+        .markdown-body th,
+        .markdown-body td {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px;
+            text-align: left;
+        }
+
+        .markdown-body th {
+            background: rgba(var(--accent-rgb), 0.1);
+        }
+
+        .jarvis-resp {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+            background-size: 200% 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            animation: shimmer 2s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .progress-percentage {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-align: right;
+        }
+
+        .progress-steps {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .progress-step.active {
+            color: #6366f1;
+            font-weight: 500;
+        }
+
+        .progress-step.completed {
+            color: #10b981;
+        }
+
+        .progress-step-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+        }
+
+        .progress-step.completed .progress-step-icon {
+            background: #10b981;
+            border-color: #10b981;
+        }
+
+        .progress-step.active .progress-step-icon {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Notification Dropdown */
+        .notification-dropdown {
+            position: absolute;
+            top: 60px;
+            right: 80px;
+            width: 320px;
+            background: #1e1e2e;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+            overflow: hidden;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .notification-dropdown.show {
+            display: block;
+        }
+
+        .notification-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #fff;
+        }
+
+        .notification-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.85rem;
+            color: #a1a1aa;
+            transition: background 0.2s;
+        }
+
+        .notification-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .notification-item.unread {
+            color: #fff;
+            background: rgba(99, 102, 241, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand">
+            <div
+                style="width: 50px; height: 50px; margin-right: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 8px; background: rgba(255,255,255,0.03);">
+                <img src="/static/images/stainlessmax_logo.png" alt="Logo"
+                    style="width: 100%; height: 100%; object-fit: contain;"
+                    onerror="this.onerror=null; this.src='/stainlessmax_logo.png'; if(this.onerror){this.onerror=null; this.src='/static/images/icon_256.png';}">
+            </div>
+            <div class="brand-text">Stainless Max</div>
+        </div>
+
+        <div style="padding: 10px 20px;">
+            <div style="position: relative;">
+                <input type="text" id="sidebarSearch" placeholder="Menüde ara..."
+                    style="width: 100%; background: var(--bg-tertiary); border: 1px solid var(--border-subtle); 
+                              border-radius: 8px; padding: 8px 12px 8px 36px; color: var(--text-primary); outline: none;">
+                <i class="fas fa-search"
+                    style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary);"></i>
+            </div>
+        </div>
+
+        <nav class="nav-links">
+            <a href="#" class="nav-item active" onclick="switchPage('dashboard')">
+                <i class="fas fa-house" style="color: #3b82f6;"></i>
+                <span data-tr="Panel" data-en="Dashboard">Panel</span>
+            </a>
+            <a href="#" class="nav-item" onclick="switchPage('ideas')">
+                <i class="fas fa-robot" style="color: #eab308;"></i>
+                <span data-tr="Jarvis" data-en="Jarvis">Jarvis</span>
+            </a>
+            <a href="#" class="nav-item" onclick="switchPage('editor')">
+                <i class="fas fa-wand-magic-sparkles" style="color: #d946ef;"></i>
+                <span data-tr="Video Editörü" data-en="Video Editor">Video Editörü</span>
+            </a>
+            <a href="#" class="nav-item" onclick="switchPage('schedule')">
+                <i class="fas fa-calendar-alt" style="color: #f97316;"></i>
+                <span data-tr="Zamanlama" data-en="Schedule">Zamanlama</span>
+            </a>
+            <a href="#" class="nav-item" onclick="switchPage('analytics')">
+                <i class="fas fa-chart-line" style="color: #8b5cf6;"></i>
+                <span data-tr="Analiz" data-en="Analytics">Analiz</span>
+            </a>
+
+            <a href="#" class="nav-item" onclick="switchPage('accounts')">
+                <i class="fas fa-users" style="color: #f43f5e;"></i>
+                <span data-tr="Hesaplar" data-en="Accounts">Hesaplar</span>
+            </a>
+            <a href="#" class="nav-item" onclick="switchPage('settings')">
+                <i class="fas fa-cog" style="color: #94a3b8;"></i>
+                <span data-tr="Ayarlar" data-en="Settings">Ayarlar</span>
+            </a>
+            <a href="#" class="nav-item" onclick="switchPage('system')">
+                <i class="fas fa-microchip" style="color: #10b981;"></i>
+                <span data-tr="Sistem Kontrol" data-en="System Control">Sistem Kontrol</span>
+            </a>
+        </nav>
+
+        <div style="padding: 20px;">
+            <button class="lang-toggle" onclick="toggleLanguage()">TR / EN</button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Header -->
+        <header class="top-bar">
+            <input type="text" class="search-bar" placeholder="Ara..." id="searchInput">
+
+            <div class="header-actions">
+                <button class="btn-primary"
+                    style="background: var(--bg-tertiary); color: var(--accent); border: 1px solid var(--accent-glow);"
+                    onclick="scanAccounts()" title="Tüm hesapları tara">
+                    <i class="fas fa-search"></i>
+                </button>
+                <button class="btn-primary"
+                    style="background: var(--bg-tertiary); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.2);"
+                    onclick="forceGenerateAll()" title="Şimdi üretim tetikle">
+                    <i class="fas fa-bolt"></i>
+                </button>
+                <button class="btn-primary"
+                    style="background: var(--bg-tertiary); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2);"
+                    onclick="clearQueue()" title="Kuyruğu temizle">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+                <button class="btn-primary" onclick="toggleAutomationMaster()" id="masterLaunchBtn">
+                    <i class="fas fa-rocket"></i> <span data-tr="OTOMASYONU BAŞLAT"
+                        data-en="START AUTOMATION">OTOMASYONU BAŞLAT</span>
+                </button>
+
+                <!-- Account Slider Button -->
+                <button class="btn-icon" onclick="openAccountPanel()"
+                    style="position: relative; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); color: var(--accent); font-size: 1.1rem; cursor: pointer; border-radius: 8px; font-weight: bold; width: auto; padding: 0 16px; margin-left: 10px;">
+                    <i class="fas fa-user-circle" style="margin-right: 8px;"></i>
+                    <span id="nav-user-name">Hesabım</span>
+                    <span id="nav-user-plan"
+                        style="margin-left:8px; font-size:0.7rem; background: var(--accent); color:#fff; padding:2px 6px; border-radius:4px;">...</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Dashboard Content -->
+        <div id="page-dashboard" class="dashboard-container">
+
+            <h2 class="section-title" data-tr="Kanal Performansı" data-en="Channel Performance">Kanal Performansı</h2>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <!-- YouTube Abone -->
+                <div class="glass-card">
+                    <div class="stat-header">
+                        <div class="stat-icon icon-yt">
+                            <i class="fab fa-youtube"></i>
+                        </div>
+                        <span class="stat-trend" id="trend-yt-subs" style="font-size:0.75rem;">
+                            <i class="fas fa-sync fa-spin" style="font-size:0.7rem;"></i>
+                        </span>
+                    </div>
+                    <div class="stat-label">YouTube Aboneler</div>
+                    <div class="stat-value" id="stat-yt-subs" style="font-size:1.6rem;">--</div>
+                    <div style="font-size:0.72rem; color: var(--text-tertiary); margin-top:4px;" id="stat-yt-views-sub">
+                        Görüntüleme: --</div>
+                </div>
+
+                <!-- TikTok Takipçi / Beğeni -->
+                <div class="glass-card">
+                    <div class="stat-header">
+                        <div class="stat-icon icon-tt">
+                            <i class="fab fa-tiktok"></i>
+                        </div>
+                        <span class="stat-trend" id="trend-tt-followers" style="font-size:0.75rem;">
+                            <i class="fas fa-sync fa-spin" style="font-size:0.7rem;"></i>
+                        </span>
+                    </div>
+                    <div class="stat-label">TikTok Takipçiler</div>
+                    <div class="stat-value" id="stat-tt-followers" style="font-size:1.6rem;">--</div>
+                    <div style="font-size:0.72rem; color: var(--text-tertiary); margin-top:4px;" id="stat-tt-likes">
+                        Beğeniler: --</div>
+                </div>
+
+                <!-- Üretilen Video -->
+                <div class="glass-card">
+                    <div class="stat-header">
+                        <div class="stat-icon icon-sub">
+                            <i class="fas fa-video"></i>
+                        </div>
+                        <span class="stat-trend" id="trend-produced"
+                            style="color:#10b981; font-size:0.75rem;">Aktif</span>
+                    </div>
+                    <div class="stat-label" data-tr="Üretilen Video" data-en="Videos Produced">Üretilen Video</div>
+                    <div class="stat-value" id="stat-produced">--</div>
+                    <div style="font-size:0.72rem; color: var(--text-tertiary); margin-top:4px;"
+                        id="stat-uploaded-count">Yüklenen: --</div>
+                </div>
+
+                <!-- Tahmini Gelir -->
+                <div class="glass-card">
+                    <div class="stat-header">
+                        <div class="stat-icon icon-money">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <span class="stat-trend" id="trend-revenue" style="font-size:0.75rem;">
+                            <i class="fas fa-sync fa-spin" style="font-size:0.7rem;"></i>
+                        </span>
+                    </div>
+                    <div class="stat-label" data-tr="Tahmini Gelir" data-en="Est. Revenue">Tahmini Gelir</div>
+                    <div class="stat-value" id="stat-revenue">--</div>
+                    <div style="font-size:0.72rem; color: var(--text-tertiary); margin-top:4px;">CPM: $2/1K view</div>
+                </div>
+            </div>
+
+            <!-- Son güncelleme & yenile çubuğu -->
+            <div
+                style="display:flex; align-items:center; gap:12px; margin-bottom:8px; font-size:0.78rem; color:var(--text-tertiary);">
+                <i class="fas fa-clock"></i>
+                <span>Son güncelleme: <strong id="stats-last-updated">--</strong></span>
+                <span style="margin-left:auto;">Sonraki güncelleme: <strong id="stats-next-refresh">--</strong>
+                    dk</span>
+                <button onclick="loadChannelStats(true)"
+                    style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:0.75rem;"
+                    title="Hemen yenile">
+                    <i class="fas fa-sync" id="stats-refresh-icon"></i> Yenile
+                </button>
+            </div>
+
+
+            <div class="content-grid"
+                style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start;">
+
+                <!-- Left Column: Recent Projects -->
+                <div style="min-width: 0;">
+
+                    <!-- Recent Projects -->
+                    <div class="glass-card" style="height: 100%;">
+                        <div class="stat-header">
+                            <h3 class="section-title" style="margin: 0;" data-tr="Son Projeler"
+                                data-en="Recent Projects">Son Projeler</h3>
+                            <button class="btn-xs" onclick="loadFiles()"><i class="fas fa-sync"></i></button>
+                        </div>
+
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th data-tr="Proje" data-en="Project">Proje</th>
+                                        <th data-tr="Platform" data-en="Platform">Platform</th>
+                                        <th data-tr="Tarih" data-en="Date">Tarih</th>
+                                        <th data-tr="İşlem" data-en="Action">İşlem</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="projects-table-body">
+                                    <tr>
+                                        <td colspan="4" style="text-align:center; color: var(--text-secondary);">
+                                            Yükleniyor...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Right Column: Live Job Tracker -->
+                <div style="min-width: 0;">
+
+                    <!-- Live Job Tracker -->
+                    <div class="glass-card">
+                        <h3 class="section-title"><i class="fas fa-tasks"></i> <span data-tr="Canlı İşlem Takibi"
+                                data-en="Live Job Tracker">Canlı İşlem Takibi</span></h3>
+                        <div class="table-container">
+                            <table style="font-size: 0.85rem;">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Platform</th>
+                                        <th data-tr="Durum" data-en="Status">Durum</th>
+                                        <th data-tr="İlerleme" data-en="Progress">İlerleme</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="jobs-table-body">
+                                    <tr>
+                                        <td colspan="4" style="text-align:center; color: var(--text-secondary);">Aktif
+                                            işlem yok</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div id="page-ideas" style="display:none;" class="dashboard-container">
+            <h2 data-tr="Gemini AI Sohbet" data-en="Gemini AI Chat">Gemini AI Sohbet</h2>
+            <div class="glass-card" style="height: 500px; display: flex; flex-direction: column;">
+                <div id="chat-messages"
+                    style="flex: 1; overflow-y: auto; padding: 15px; font-family: 'Inter', sans-serif;">
+                    <div class="ai-suggestion"
+                        style="background: rgba(255,255,255,0.05); border-left: 3px solid var(--accent);">
+                        <strong>Gemini:</strong> Merhaba! Sana nasıl yardımcı olabilirim? Viral fikirler veya içerik
+                        stratejileri hakkında konuşabiliriz.
+                    </div>
+                </div>
+                <div id="chat-attachments" style="padding: 0 15px; display: flex; gap: 10px; overflow-x: auto;"></div>
+                <div
+                    style="padding: 15px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px; align-items: center;">
+                    <input type="file" id="chat-file-input" style="display:none;" multiple
+                        onchange="handleFileSelect(this)">
+                    <button class="btn-secondary"
+                        style="padding: 8px 12px; height: 38px; cursor: pointer; border-radius: 8px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; background: #6366f1; border: 1px solid #4f46e5; color: #fff;"
+                        onmouseover="this.style.background='#4f46e5'; this.style.boxShadow='0 0 10px rgba(99, 102, 241, 0.5)';"
+                        onmouseout="this.style.background='#6366f1'; this.style.boxShadow='none';"
+                        onclick="document.getElementById('chat-file-input').click()" title="Dosya Ekle">
+                        <i class="fas fa-paperclip" style="font-size: 1.2rem;"></i>
+                    </button>
+                    <input type="text" id="chat-input" class="form-input"
+                        placeholder="Bir şeyler sor veya dosya yükle..."
+                        onkeypress="if(event.key==='Enter') sendChatMessage()">
+                    <button class="btn-primary" id="chat-send-btn" onclick="sendChatMessage()" style="cursor: pointer;">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-editor" style="display:none;" class="dashboard-container">
+            <h2 class="section-title" data-tr="Video Editörü" data-en="Video Editor">Video Editörü</h2>
+
+            <div class="editor-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+
+                <!-- YouTube Studio -->
+                <div class="glass-card">
+                    <div class="stat-header">
+                        <div class="stat-icon icon-yt" style="width: 40px; height: 40px; font-size: 1.2rem;">
+                            <i class="fab fa-youtube"></i>
+                        </div>
+                        <h3 style="margin: 0;">YouTube Studio</h3>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label data-tr="Hesap Seçin" data-en="Select Account">Hesap Seçin</label>
+                        <select id="yt-account-select" class="form-input account-selector">
+                            <option value="auto">Otomatik (Niche Bazlı)</option>
+                        </select>
+                    </div>
+
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 20px;"
+                        data-tr="Konu ve niş kanal ayarlarınızdan otomatik olarak belirlenir."
+                        data-en="Topic and niche are automatically determined from channel settings.">
+                        Konu ve niş kanal ayarlarınızdan otomatik olarak belirlenir.
+                    </p>
+
+                    <button class="btn-primary" style="width: 100%; background: #ff0000;"
+                        onclick="generateVideo('youtube')">
+                        <i class="fas fa-video"></i> <span data-tr="YouTube Videosu Üret"
+                            data-en="Generate YouTube Video">YouTube Videosu Üret</span>
+                    </button>
+                </div>
+
+                <!-- TikTok Studio -->
+                <div class="glass-card">
+                    <div class="stat-header">
+                        <div class="stat-icon icon-tt" style="width: 40px; height: 40px; font-size: 1.2rem;">
+                            <i class="fab fa-tiktok"></i>
+                        </div>
+                        <h3 style="margin: 0;">TikTok Studio</h3>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label data-tr="Hesap Seçin" data-en="Select Account">Hesap Seçin</label>
+                        <select id="tt-account-select" class="form-input account-selector">
+                            <option value="auto">Otomatik (Niche Bazlı)</option>
+                        </select>
+                    </div>
+
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 20px;"
+                        data-tr="Yapay zeka profilinize uygun viral içerik üretecektir."
+                        data-en="AI will generate viral content suitable for your profile.">
+                        Yapay zeka profilinize uygun viral içerik üretecektir.
+                    </p>
+
+                    <button class="btn-primary" style="width: 100%; background: #00f2ea; color: #000;"
+                        onclick="generateVideo('tiktok')">
+                        <i class="fas fa-video"></i> <span data-tr="TikTok Videosu Üret"
+                            data-en="Generate TikTok Video">TikTok Videosu Üret</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- MANUAL PRODUCTION STUDIO -->
+            <div class="glass-card" style="margin-top: 24px;">
+                <div class="stat-header">
+                    <div class="stat-icon" style="background: rgba(255, 165, 0, 0.2); color: orange;">
+                        <i class="fas fa-sliders-h"></i>
+                    </div>
+                    <h3 data-tr="Manuel Üretim Stüdyosu" data-en="Manual Production Studio">Manuel Üretim Stüdyosu</h3>
+                </div>
+
+                <div class="settings-grid" style="margin-top: 20px; grid-template-columns: 1fr 1fr; gap: 20px;">
+
+                    <!-- Left Column -->
+                    <div>
+                        <div class="form-group">
+                            <label data-tr="Video Konusu" data-en="Video Topic">Video Konusu</label>
+                            <input type="text" id="manual-topic" class="form-input"
+                                placeholder="Örn: Yapay Zekanın Geleceği">
+                        </div>
+
+                        <div class="form-group">
+                            <label data-tr="Platform & Hesap" data-en="Platform & Account">Platform & Hesap</label>
+                            <select id="manual-account-select" class="form-input">
+                                <!-- Populated by JS -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div>
+                        <div class="form-group">
+                            <label data-tr="En Boy Oranı" data-en="Aspect Ratio">En Boy Oranı</label>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn-primary ratio-btn active" onclick="setRatio('9:16')" id="ratio-9-16"
+                                    style="flex:1; background:var(--bg-secondary); color: white; border: 1px solid var(--border-subtle);">
+                                    <i class="fas fa-mobile-alt"></i> 9:16 (Dikey)
+                                </button>
+                                <button class="btn-primary ratio-btn" onclick="setRatio('16:9')" id="ratio-16-9"
+                                    style="flex:1; background:var(--bg-secondary); color: white; border: 1px solid var(--border-subtle);">
+                                    <i class="fas fa-desktop"></i> 16:9 (Yatay)
+                                </button>
+                            </div>
+                            <input type="hidden" id="manual-ratio" value="9:16">
+                        </div>
+
+                        <div class="form-group">
+                            <label data-tr="Süre" data-en="Duration">Süre</label>
+                            <select id="manual-duration" class="form-input">
+                                <option value="10">10 Saniye</option>
+                                <option value="30">30 Saniye</option>
+                                <option value="60" selected>1 Dakika</option>
+                                <option value="120">2 Dakika</option>
+                                <option value="180">3 Dakika</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <button class="btn-primary" style="width: 100%; padding: 15px; font-size: 1.1rem;"
+                        onclick="generateManualVideo()">
+                        <i class="fas fa-magic"></i> <span data-tr="Özel Video Üret"
+                            data-en="Generate Custom Video">Özel Video Üret</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        </div>
+
+        <div id="page-schedule" style="display:none;" class="dashboard-container">
+            <h2 data-tr="Zamanlama" data-en="Schedule">Zamanlama</h2>
+            <div class="glass-card" id="schedule-content">
+                <p style="color: var(--text-secondary);"><i class="fas fa-sync fa-spin"></i> Takvim ve zamanlama
+                    araçları yükleniyor...</p>
+            </div>
+        </div>
+
+        <div id="page-analytics" style="display:none;" class="dashboard-container">
+            <h2 data-tr="Analiz" data-en="Analytics">Analiz</h2>
+            <div class="glass-card" id="analytics-content">
+                <p style="color: var(--text-secondary);"><i class="fas fa-sync fa-spin"></i> Detaylı analiz verileri
+                    yükleniyor...</p>
+            </div>
+        </div>
+
+        <div id="page-system" style="display:none;" class="dashboard-container">
+            <div class="stat-header">
+                <h2 data-tr="Sistem Kontrol Paneli" data-en="System Control Panel">Sistem Kontrol Paneli</h2>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button class="btn-primary" id="oneClickUpdateBtn" onclick="oneClickUpdate()"
+                        style="background: linear-gradient(90deg, #2563eb, #7c3aed);">
+                        <i class="fas fa-download"></i>
+                        <span data-tr="Tek Tuş Güncelle" data-en="One-Click Update">Tek Tuş Güncelle</span>
+                    </button>
+                    <button class="btn-primary" onclick="runSystemCheck()">
+                        <i class="fas fa-stethoscope"></i> <span data-tr="Taramayı Başlat" data-en="Start Scan">Taramayı
+                            Başlat</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="glass-card" id="system-loading" style="display:none; text-align:center; padding: 40px;">
+                <div class="terminal-dot dot-green"
+                    style="width: 20px; height: 20px; animation: pulse 1s infinite; margin: 0 auto 20px;"></div>
+                <h3>Sistem Taranıyor...</h3>
+                <p style="color: var(--text-secondary);">Yapay zeka analiz yapıyor, lütfen bekleyin...</p>
+            </div>
+
+            <div id="system-results" style="display:none;">
+                <!-- AI Summary -->
+                <div class="glass-card"
+                    style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2);">
+                    <h3 style="color: #10b981;"><i class="fas fa-robot"></i> Yapay Zeka Raporu</h3>
+                    <div id="ai-summary-content" style="white-space: pre-wrap; margin-top: 15px; line-height: 1.6;">
+                    </div>
+                </div>
+
+                <!-- Details Grid -->
+                <div class="stats-grid"
+                    style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); margin-top: 20px;">
+                    <div class="glass-card">
+                        <h4><i class="fas fa-network-wired"></i> Ağ Durumu</h4>
+                        <div id="res-network" class="check-list"></div>
+                    </div>
+                    <div class="glass-card">
+                        <h4><i class="fas fa-key"></i> API Anahtarları</h4>
+                        <div id="res-keys" class="check-list"></div>
+                    </div>
+                    <div class="glass-card">
+                        <h4><i class="fas fa-hdd"></i> Disk ve Dosyalar</h4>
+                        <div id="res-storage" class="check-list"></div>
+                    </div>
+                    <div class="glass-card">
+                        <h4><i class="fas fa-cubes"></i> Bağımlılıklar</h4>
+                        <div id="res-deps" class="check-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-settings" style="display:none;" class="dashboard-container">
+            <h2 class="section-title" data-tr="Ayarlar" data-en="Settings">Ayarlar</h2>
+
+            <div class="glass-card">
+                <div class="settings-grid">
+
+                    <!-- API Keys -->
+                    <div class="settings-section">
+                        <h3 class="section-title" style="color: var(--accent);"><i class="fas fa-key"></i> API Keys</h3>
+                        <div class="form-group">
+                            <label>Gemini API Key</label>
+                            <input type="password" id="set-gemini-key" class="form-input" placeholder="••••••••">
+                        </div>
+                        <div class="form-group">
+                            <label>Pexels API Key</label>
+                            <input type="password" id="set-pexels-key" class="form-input" placeholder="••••••••">
+                        </div>
+                        <div class="form-group">
+                            <label>Pixabay API Key</label>
+                            <input type="password" id="set-pixabay-key" class="form-input" placeholder="••••••••">
+                        </div>
+                        <div class="form-group">
+                            <label>Telegram Bot Token</label>
+                            <input type="password" id="set-telegram-token" class="form-input" placeholder="••••••••">
+                        </div>
+                    </div>
+
+                    <!-- App Settings -->
+                    <div class="settings-section">
+                        <h3 class="section-title" style="color: var(--accent);"><i class="fas fa-sliders-h"></i> <span
+                                data-tr="Genel Ayarlar" data-en="General Settings">Genel Ayarlar</span></h3>
+                        <div class="form-group">
+                            <label data-tr="Varsayılan Dil" data-en="Default Language">Varsayılan Dil</label>
+                            <select id="set-lang" class="form-input">
+                                <option value="tr">Türkçe</option>
+                                <option value="en">English</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label data-tr="Video Kalitesi" data-en="Video Quality">Video Kalitesi</label>
+                            <select id="set-quality" class="form-input">
+                                <option value="1080">1080p (Full HD)</option>
+                                <option value="720">720p (HD)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label data-tr="Telegram Admin ID" data-en="Telegram Admin ID">Telegram Admin ID</label>
+                            <input type="text" id="set-telegram-admin" class="form-input" placeholder="12345678">
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="settings-grid" style="margin-top: 24px;">
+                    <!-- YouTube OAuth -->
+                    <div class="settings-section">
+                        <h3 class="section-title" style="color: #ff0000;"><i class="fab fa-youtube"></i> YouTube OAuth
+                        </h3>
+                        <div class="form-group">
+                            <label>Client ID</label>
+                            <input type="text" id="set-yt-client-id" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Client Secret</label>
+                            <input type="password" id="set-yt-client-secret" class="form-input">
+                        </div>
+                    </div>
+
+                    <!-- TikTok OAuth -->
+                    <div class="settings-section">
+                        <h3 class="section-title" style="color: #00f2ea;"><i class="fab fa-tiktok"></i> TikTok OAuth
+                        </h3>
+                        <div class="form-group">
+                            <label>Client Key</label>
+                            <input type="text" id="set-tt-client-key" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Client Secret</label>
+                            <input type="password" id="set-tt-client-secret" class="form-input">
+                        </div>
+                    </div>
+
+                    <!-- Promo Code Settings Section -->
+                    <div class="settings-section">
+                        <h3 class="section-title"
+                            style="background: linear-gradient(135deg, #10b981, #059669); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                            <i class="fas fa-gift" style="color: #10b981;"></i> Promosyon
+                        </h3>
+                        <div class="form-group">
+                            <label data-tr="Promosyon Kodu Tanımlayın" data-en="Redeem Promo Code">Promosyon
+                                Kodu</label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="set-promo-code" class="form-input"
+                                    placeholder="Kodunuzu girin..." style="flex: 1;">
+                                <button class="btn-primary" style="background: var(--accent);"
+                                    onclick="applyPromoFromSettings()">Uygula</button>
+                            </div>
+                            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px;">Geçerli bir
+                                promosyon kodu girerek planınızı hemen yükseltin.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 32px; display: flex; justify-content: flex-end; gap: 16px;">
+                    <button class="btn-primary" style="background: var(--bg-tertiary); color: var(--text-secondary);"
+                        onclick="loadSettings()">
+                        <i class="fas fa-undo"></i> <span data-tr="Geri Al" data-en="Reset">Geri Al</span>
+                    </button>
+                    <button class="btn-primary" onclick="saveSettings()">
+                        <i class="fas fa-save"></i> <span data-tr="Ayarları Kaydet" data-en="Save Settings">Ayarları
+                            Kaydet</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACCOUNTS PAGE -->
+        <div id="page-accounts" style="display:none;" class="dashboard-container">
+            <h2 data-tr="Hesap Yönetimi" data-en="Account Management">Hesap Yönetimi</h2>
+
+            <div class="content-grid">
+                <!-- YouTube Accounts -->
+                <div class="glass-card">
+                    <div class="stat-header">
+                        <div class="stat-icon icon-yt">
+                            <i class="fab fa-youtube"></i>
+                        </div>
+                        <h3>YouTube</h3>
+                    </div>
+                    <div id="yt-accounts-list" style="margin-top: 20px;">
+                        <!-- JS populate -->
+                        <p style="color:var(--text-secondary);">Yükleniyor...</p>
+                    </div>
+                    <button class="btn-primary"
+                        style="margin-top:20px; width:100%; background: linear-gradient(90deg, #ef4444, #b91c1c); color: white; border: 1px solid #f87171; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.2);"
+                        onclick="openAddAccountModal('youtube')">
+                        <i class="fas fa-plus"></i> Hesap Ekle
+                    </button>
+                </div>
+
+                <!-- TikTok Accounts -->
+                <div class="glass-card">
+                    <div class="stat-header">
+                        <div class="stat-icon icon-tt">
+                            <i class="fab fa-tiktok"></i>
+                        </div>
+                        <h3>TikTok</h3>
+                    </div>
+                    <div id="tt-accounts-list" style="margin-top: 20px;">
+                        <!-- JS populate -->
+                        <p style="color:var(--text-secondary);">Yükleniyor...</p>
+                    </div>
+                    <button class="btn-primary"
+                        style="margin-top:20px; width:100%; background: linear-gradient(90deg, #10b981, #059669); color: white; border: 1px solid #34d399; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.2);"
+                        onclick="openAddAccountModal('tiktok')">
+                        <i class="fas fa-plus"></i> Hesap Ekle
+                    </button>
+                </div>
+            </div>
+
+            <!-- Add Account Modal -->
+            <div id="add-account-modal" class="glass-card"
+                style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:1000; width:400px; border: 1px solid var(--accent-glow); background: #1e1e2e; color: #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.8);">
+                <h3 id="modal-title" style="margin-top:0;">Hesap Ekle</h3>
+                <input type="hidden" id="new-acc-platform">
+
+                <div class="form-group">
+                    <label style="color: #cbd5e1;">ID (Unique)</label>
+                    <input type="text" id="new-acc-id" class="form-input" placeholder="my_channel_1"
+                        style="background: rgba(255,255,255,0.05); color: #fff;">
+                </div>
+
+                <div class="form-group">
+                    <label style="color: #cbd5e1;">Görünen İsim</label>
+                    <input type="text" id="new-acc-name" class="form-input" placeholder="My Awesome Channel"
+                        style="background: rgba(255,255,255,0.05); color: #fff;">
+                </div>
+
+                <div class="form-group">
+                    <label style="color: #cbd5e1;">Kategori (Niche)</label>
+                    <select id="new-acc-niche" class="form-input"
+                        style="background: rgba(255,255,255,0.05); color: #fff;">
+                        <option value="general" style="color:#000;">Genel</option>
+                        <option value="tech" style="color:#000;">Teknoloji</option>
+                        <option value="finance" style="color:#000;">Finans</option>
+                        <option value="horror" style="color:#000;">Korku/Gizem</option>
+                        <option value="motivation" style="color:#000;">Motivasyon</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="yt-oauth-fields">
+                    <label style="color: #cbd5e1;">Client ID (Opsiyonel)</label>
+                    <input type="text" id="new-acc-client-id" class="form-input" placeholder="OAuth Client ID"
+                        style="background: rgba(255,255,255,0.05); color: #fff;">
+                    <label style="margin-top:10px; color: #cbd5e1;">Client Secret (Opsiyonel)</label>
+                    <input type="password" id="new-acc-client-secret" class="form-input"
+                        placeholder="OAuth Client Secret" style="background: rgba(255,255,255,0.05); color: #fff;">
+                </div>
+
+                <!-- TikTok Fields -->
+                <div id="tt-fields" style="display:none;">
+                    <div class="form-group">
+                        <label style="color: #cbd5e1;">Giriş E-postası / Telefonu</label>
+                        <input type="text" id="new-acc-tt-login" class="form-input"
+                            placeholder="email@example.com or +90..."
+                            style="background: rgba(255,255,255,0.05); color: #fff;">
+                    </div>
+                    <div class="form-group">
+                        <label style="color: #cbd5e1;">Şifre</label>
+                        <input type="password" id="new-acc-tt-password" class="form-input" placeholder="TikTok Password"
+                            style="background: rgba(255,255,255,0.05); color: #fff;">
+                    </div>
+                </div>
+
+                <div style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;">
+                    <button class="btn-primary" style="background:var(--bg-secondary);"
+                        onclick="closeAddAccountModal()">İptal</button>
+                    <button class="btn-primary" onclick="submitNewAccount()">Kaydet</button>
+                </div>
+            </div>
+
+            <!-- Change Password Modal -->
+            <div id="change-password-modal" class="glass-card"
+                style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:1000; width:400px; border: 1px solid var(--accent-glow); background: #1e1e2e; color: #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.8);">
+                <h3 id="cpw-modal-title" style="margin-top:0;">Şifre Değiştir</h3>
+                <div class="form-group">
+                    <label style="color: #cbd5e1;">Mevcut Şifre</label>
+                    <input type="password" id="cpw-old" class="form-input" placeholder="Mevcut şifrenizi girin"
+                        style="background: rgba(255,255,255,0.05); color: #fff;">
+                </div>
+                <div class="form-group">
+                    <label style="color: #cbd5e1;">Yeni Şifre</label>
+                    <input type="password" id="cpw-new" class="form-input" placeholder="En az 6 karakter"
+                        style="background: rgba(255,255,255,0.05); color: #fff;">
+                </div>
+                <div class="form-group">
+                    <label style="color: #cbd5e1;">Yeni Şifre (Tekrar)</label>
+                    <input type="password" id="cpw-new-repeat" class="form-input" placeholder="Şifrenizi doğrulayın"
+                        style="background: rgba(255,255,255,0.05); color: #fff;">
+                </div>
+                <div style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;">
+                    <button class="btn-primary" style="background:var(--bg-secondary);"
+                        onclick="closeChangePasswordModal()">İptal</button>
+                    <button class="btn-primary" onclick="submitChangePassword()">Değiştir</button>
+                </div>
+            </div>
+
+    </main>
+
+    <!-- Account Slide Over Panel -->
+    <style>
+        .slide-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 380px;
+            height: 100vh;
+            background: var(--bg-secondary);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 9999;
+            transition: right 0.3s ease;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slide-panel .panel-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .slide-panel .panel-header h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .slide-panel .btn-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .slide-panel .btn-close:hover {
+            color: #fff;
+        }
+
+        .slide-panel .panel-content {
+            padding: 20px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .user-info-box {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .user-info-box h3 {
+            margin: 0 0 5px 0;
+            color: #fff;
+        }
+
+        .user-info-box p {
+            margin: 0 0 10px 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .plan-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: #fff;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        .menu-sections {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .menu-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 15px;
+            border-radius: 8px;
+            color: #fff;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+
+        .menu-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent);
+        }
+
+        .menu-btn i {
+            width: 20px;
+            text-align: center;
+            color: var(--accent);
+        }
+
+        .upgrade-section {
+            margin-top: 30px;
+            padding: 15px;
+            background: rgba(99, 102, 241, 0.05);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 10px;
+        }
+
+        .upgrade-section h4 {
+            margin: 0 0 10px 0;
+            color: var(--accent);
+        }
+    </style>
+    <div id="accountSlidePanel" class="slide-panel">
+        <div class="panel-header">
+            <h2><i class="fas fa-user-circle"></i> Hesabım</h2>
+            <button class="btn-close" onclick="closeAccountPanel()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="panel-content">
+            <div class="user-info-box">
+                <h3 id="panel-user-fullname">Yükleniyor...</h3>
+                <p id="panel-user-email">...</p>
+                <div class="plan-badge" id="panel-user-plan">...</div>
+            </div>
+
+            <div class="menu-sections">
+                <button class="menu-btn" onclick="showPromoModal()"><i class="fas fa-gift"></i> Promosyon Kodu
+                    Gir</button>
+                <button class="menu-btn" onclick="window.location.href='/setup'"><i class="fas fa-cogs"></i> API
+                    Ayarları (Kurulum Sihirbazı)</button>
+                <button class="menu-btn" onclick="logout()" style="color: var(--danger);"><i class="fas fa-sign-out-alt"
+                        style="color: var(--danger);"></i> Çıkış Yap</button>
+            </div>
+
+            <div class="upgrade-section" id="upgrade-section">
+                <h4>Aktif Planını Yükselt</h4>
+                <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:15px;">Günlük limitlere
+                    takılmadan sınırsız otomasyon gücünü hisset.</p>
+                <button class="btn-primary"
+                    style="width:100%; margin-bottom:10px; background: linear-gradient(135deg, #10b981, #059669);"
+                    onclick="buyPlan('pro')"><i class="fas fa-star"></i> PRO PLAN (20 Video/Gün)</button>
+                <button class="btn-primary" style="width:100%; background: linear-gradient(135deg, #f59e0b, #d97706);"
+                    onclick="buyPlan('ultra')"><i class="fas fa-crown"></i> ULTRA PLAN (Sınırsız)</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- JWT TOKEN INTERCEPTOR ---
+        const token = localStorage.getItem('stainless_token');
+        if (!token) {
+            window.location.href = '/';
+        }
+
+        const originalFetch = window.fetch;
+        window.fetch = async function () {
+            let [resource, config] = arguments;
+            if (config === undefined) config = {};
+            if (config.headers === undefined) config.headers = {};
+
+            // Multipart form data vs json kontrolü
+            if (!(config.body instanceof FormData)) {
+                // Sadece custom json requestleri için (Eğer content türü yoksa eklenebilir ama standart kalmalı)
+            }
+            config.headers['Authorization'] = `Bearer ${token}`;
+
+            try {
+                const res = await originalFetch(resource, config);
+                if (res.status === 401) {
+                    localStorage.removeItem('stainless_token');
+                    window.location.href = '/';
+                }
+                if (res.status === 403) {
+                    try {
+                        const clonedRes = res.clone();
+                        const errData = await clonedRes.json();
+                        if (errData.error) {
+                            showToast("Yetki veya Limit Hatası", errData.error);
+                            if (errData.limit) {
+                                // Rate limit exceeded.
+                                document.getElementById('masterLaunchBtn').innerHTML = `<i class="fas fa-exclamation-triangle"></i> LİMİT AŞILDI`;
+                                document.getElementById('masterLaunchBtn').style.background = 'var(--danger)';
+                            }
+                        }
+                    } catch (e) { }
+                }
+                return res;
+            } catch (e) {
+                return Promise.reject(e);
+            }
+        };
+
+        // --- ACCOUNT/PROFILE FUNCTIONS ---
+        let currentUser = null;
+        async function loadUserProfile() {
+            try {
+                const res = await fetch('/api/auth/me');
+                if (res.ok) {
+                    const user = await res.json();
+                    currentUser = user;
+                    document.getElementById('nav-user-name').innerText = user.name || 'Kullanıcı';
+                    document.getElementById('nav-user-plan').innerText = (user.plan || 'FREE').toUpperCase();
+
+                    document.getElementById('panel-user-fullname').innerText = `${user.name} ${user.surname}`;
+                    document.getElementById('panel-user-email').innerText = user.email;
+                    document.getElementById('panel-user-plan').innerText = `${(user.plan || 'FREE').toUpperCase()} PLAN`;
+
+                    if (user.plan === 'ultra') {
+                        document.getElementById('upgrade-section').style.display = 'none';
+                    }
+                }
+            } catch (e) { console.error('Profil yüklenemedi', e); }
+        }
+
+        function openAccountPanel() { document.getElementById('accountSlidePanel').style.right = '0'; }
+        function closeAccountPanel() { document.getElementById('accountSlidePanel').style.right = '-400px'; }
+        function logout() { localStorage.removeItem('stainless_token'); window.location.href = '/'; }
+
+        function showPromoModal() {
+            const code = prompt("Promosyon kodunuzu girin:");
+            if (code) {
+                fetch('/api/auth/apply-promo', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code })
+                }).then(r => r.json()).then(data => {
+                    if (data.token) {
+                        localStorage.setItem('stainless_token', data.token);
+                        alert("Promosyon başarıyla uygulandı! Planınız: " + data.plan);
+                        window.location.reload();
+                    } else {
+                        alert(data.error || "Geçersiz veya kullanılmış kod.");
+                    }
+                }).catch(e => alert("Bir hata oluştu."));
+            }
+        }
+
+        async function applyPromoFromSettings() {
+            const input = document.getElementById('set-promo-code');
+            const code = input.value.trim();
+            if (!code) {
+                return showToast("Hata", "Lütfen bir promosyon kodu girin.");
+            }
+
+            try {
+                const res = await fetch('/api/auth/apply-promo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code })
+                });
+                const data = await res.json();
+
+                if (data.token) {
+                    localStorage.setItem('stainless_token', data.token);
+                    showToast("Başarılı!", "Promosyon uygulandı. Planınız: " + (data.plan || 'BİLİNMİYOR').toUpperCase() + ". Sayfa yenileniyor...");
+                    setTimeout(() => window.location.reload(), 2000);
+                } else {
+                    showToast("Süresi Dolmuş / Geçersiz", data.error || "Geçersiz veya kullanılmış kod.");
+                }
+            } catch (e) {
+                showToast("Hata", "Sunucu ile iletişim kurulamadı.");
+            }
+        }
+
+        function buyPlan(plan) {
+            showToast("Çok Yakında!", "Otomatik ödeme sistemi yakında aktif edilecektir! Şu an için özel promosyon kodlarını kullanabilirsiniz.");
+        }
+
+        function showChangePasswordModal() {
+            closeAccountPanel();
+            document.getElementById('cpw-old').value = '';
+            document.getElementById('cpw-new').value = '';
+            document.getElementById('cpw-new-repeat').value = '';
+            document.getElementById('change-password-modal').style.display = 'block';
+        }
+
+        function closeChangePasswordModal() {
+            document.getElementById('change-password-modal').style.display = 'none';
+        }
+
+        async function submitChangePassword() {
+            const old_password = document.getElementById('cpw-old').value;
+            const new_password = document.getElementById('cpw-new').value;
+            const repeat = document.getElementById('cpw-new-repeat').value;
+
+            if (!old_password || !new_password || !repeat) return alert("Lütfen tüm alanları doldurun.");
+            if (new_password.length < 6) return alert("Yeni şifre en az 6 karakter olmalıdır.");
+            if (new_password !== repeat) return alert("Yeni şifreler eşleşmiyor.");
+
+            const btn = event.target;
+            const oldText = btn.innerText;
+            btn.innerText = "Bekleyin...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/auth/change-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ old_password, new_password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert(data.message || "Şifre güncellendi.");
+                    closeChangePasswordModal();
+                } else {
+                    alert(data.error || "Şifre değiştirilemedi.");
+                }
+            } catch (e) {
+                alert("Bağlantı hatası: " + e.message);
+            } finally {
+                btn.innerText = oldText;
+                btn.disabled = false;
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadUserProfile();
+        });
+
+        // --- CONFIG & STATE ---
+        let currentLang = 'tr'; // Default Turkish
+
+        // --- SOCKET.IO ---
+        const socket = io();
+        socket.on('connect', () => {
+            console.log('Connected to server');
+            addLog('System', 'Arayüz sunucuya bağlandı.', 'success');
+        });
+
+        socket.on('log_history', (data) => {
+            console.log("Receiving log history:", data);
+            const body = document.getElementById('terminal-body');
+            // Clear existing "waiting" message if it's the only child
+            if (body.children.length === 1 && body.innerText.includes("Waiting for logs")) {
+                body.innerHTML = "";
+            }
+
+            if (data.logs && Array.isArray(data.logs)) {
+                data.logs.forEach(logMsg => {
+                    // Parse log message to extract source if possible, or just raw
+                    // Format is usually "[TIMESTAMP] [SOURCE?] MESSAGE"
+                    // We'll just dump it for now, or try to parse
+                    addLog('HISTORY', logMsg);
+                });
+            }
+        });
+
+        socket.on('log', (data) => {
+            addLog('LOG', data.data || data);
+        });
+
+        socket.on('progress', (data) => {
+            // Update progress notification
+            updateProgressNotification(data.percent, data.status);
+            // Also log to terminal
+            addLog('PROCESS', `${data.status} (${data.percent}%)`);
+        });
+
+        socket.on('job_update', (data) => {
+            updateJobTable(data.jobs || data);
+        });
+
+        // --- PROGRESS NOTIFICATION FUNCTIONS ---
+        let progressNotificationVisible = false;
+        let progressHideTimeout = null;
+        let lastProgressPercent = 0;
+
+        function showProgressNotification(title = 'Video Üretiliyor') {
+            const container = document.getElementById('progress-notification');
+            if (!container) return;
+
+            container.innerHTML = `
+                <div class="progress-notification">
+                    <div class="progress-header">
+                        <div class="progress-title">
+                            <div class="progress-icon">
+                                <i class="fas fa-video"></i>
+                            </div>
+                            <span>${title}</span>
+                        </div>
+                        <button class="progress-close" onclick="hideProgressNotification()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="progress-status" id="progress-status">Başlatılıyor...</div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" id="progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-percentage" id="progress-percentage">0%</div>
+                    <div class="progress-steps" id="progress-steps"></div>
+                </div>
+            `;
+
+            container.style.display = 'block';
+            progressNotificationVisible = true;
+        }
+
+        function updateProgressNotification(percent, status) {
+            if (!progressNotificationVisible) {
+                showProgressNotification();
+            }
+
+            if (progressHideTimeout) {
+                clearTimeout(progressHideTimeout);
+                progressHideTimeout = null;
+            }
+
+            const safePercent = Math.max(0, Math.min(100, parseInt(percent, 10) || 0));
+            lastProgressPercent = safePercent;
+
+            const bar = document.getElementById('progress-bar');
+            const statusEl = document.getElementById('progress-status');
+            const percentEl = document.getElementById('progress-percentage');
+            const stepsEl = document.getElementById('progress-steps');
+
+            if (bar) bar.style.width = `${safePercent}%`;
+            if (statusEl) statusEl.textContent = status || 'İşleniyor...';
+            if (percentEl) percentEl.textContent = `${safePercent}%`;
+
+            if (stepsEl) {
+                const lowerStatus = (status || '').toLowerCase();
+                const isUploadPhase = lowerStatus.includes('yüklen') || lowerStatus.includes('youtube') || lowerStatus.includes('tiktok');
+                const phaseText = isUploadPhase ? 'Paylaşım Aşaması (YouTube/TikTok)' : 'Video Üretim Aşaması';
+                const phaseIcon = isUploadPhase ? 'cloud-upload-alt' : 'video';
+
+                stepsEl.innerHTML = `
+                    <div class="progress-step active">
+                        <div class="progress-step-icon">
+                            <i class="fas fa-${phaseIcon}"></i>
+                        </div>
+                        <span>${phaseText}</span>
+                    </div>
+                `;
+            }
+
+            // Sadece gerçek tamamlanmada kapanış zamanlayıcısı kur
+            if (safePercent >= 100) {
+                progressHideTimeout = setTimeout(() => {
+                    hideProgressNotification();
+                }, 5000);
+            }
+        }
+
+        function hideProgressNotification() {
+            if (progressHideTimeout) {
+                clearTimeout(progressHideTimeout);
+                progressHideTimeout = null;
+            }
+
+            const container = document.getElementById('progress-notification');
+            if (!container) return;
+
+            const notification = container.querySelector('.progress-notification');
+            if (notification) {
+                notification.classList.add('closing');
+                setTimeout(() => {
+                    container.style.display = 'none';
+                    container.innerHTML = '';
+                    progressNotificationVisible = false;
+                    lastProgressPercent = 0;
+                }, 300);
+            }
+        }
+
+        function addLog(source, message, type = '') {
+            const body = document.getElementById('terminal-body');
+            const time = new Date().toLocaleTimeString();
+
+            // Console fallback since terminal UI is removed
+            console.log(`[${time}] [${source}] ${message}`);
+
+            if (!body) return; // Prevent error if terminal is missing
+
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+
+            let color = '#00ff00'; // Default green
+            if (message.includes('❌') || message.includes('Hata') || message.includes('ERROR')) color = '#ff5f56';
+            if (message.includes('✅') || message.includes('Başarılı') || message.includes('SUCCESS')) color = '#27c93f';
+            if (message.includes('⚠️') || message.includes('WARNING')) color = '#ffbd2e';
+
+            // Sanitize message to prevent XSS if needed, though we trust our backend logs
+            entry.innerHTML = `
+                <span class="log-time">[${time}]</span>
+                <span style="color: var(--accent); font-weight: bold;">[${source}]</span>
+                <span style="color: ${color}">${message}</span>
+            `;
+
+            // Fragment optimization for high-frequency logs if needed, but 3s interval is fine
+            body.appendChild(entry);
+            body.scrollTop = body.scrollHeight;
+
+            if (body.children.length > 50) body.removeChild(body.firstChild);
+        }
+
+        let selectedFiles = [];
+
+        function handleFileSelect(input) {
+            const container = document.getElementById('chat-attachments');
+            for (let file of input.files) {
+                const fileId = Math.random().toString(36).substr(2, 9);
+                selectedFiles.push({ id: fileId, file: file });
+
+                const pill = document.createElement('div');
+                pill.className = 'file-pill';
+                pill.id = `file-${fileId}`;
+                pill.style = "background: rgba(var(--accent-rgb), 0.2); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; display: flex; align-items: center; gap: 5px; margin-bottom: 10px; border: 1px solid var(--accent); white-space: nowrap;";
+
+                let icon = 'fa-file';
+                if (file.type.startsWith('image/')) icon = 'fa-file-image';
+                if (file.type.startsWith('video/')) icon = 'fa-file-video';
+                if (file.type === 'application/pdf') icon = 'fa-file-pdf';
+
+                pill.innerHTML = `
+                    <i class="fas ${icon}"></i>
+                    <span>${file.name.length > 15 ? file.name.substring(0, 12) + '...' : file.name}</span>
+                    <i class="fas fa-times" style="cursor:pointer; color: #ff5f56;" onclick="removeFile('${fileId}')"></i>
+                `;
+                container.appendChild(pill);
+            }
+            input.value = ''; // Reset input
+        }
+
+        function removeFile(id) {
+            selectedFiles = selectedFiles.filter(f => f.id !== id);
+            const el = document.getElementById(`file-${id}`);
+            if (el) el.remove();
+        }
+
+        async function uploadChatFiles() {
+            const uploadedFilenames = [];
+            for (let f of selectedFiles) {
+                const formData = new FormData();
+                formData.append('file', f.file);
+                try {
+                    const res = await fetch('/api/jarvis/upload', { method: 'POST', body: formData });
+                    const data = await res.json();
+                    if (data.status === 'success') uploadedFilenames.push(data.filename);
+                } catch (e) { console.error("File upload failed:", e); }
+            }
+            return uploadedFilenames;
+        }
+
+        async function sendChatMessage() {
+            if (currentUser && currentUser.plan === 'free') {
+                return showToast("Pro Özellik", "Jarvis kullanımına devam etmek için planınızı yükseltmeniz gerekmektedir.");
+            }
+
+            const input = document.getElementById('chat-input');
+            const msg = input.value.trim();
+            if (!msg && selectedFiles.length === 0) return;
+
+            const sendBtn = document.getElementById('chat-send-btn');
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            const container = document.getElementById('chat-messages');
+
+            // Show user message
+            let fileInfo = selectedFiles.length > 0 ? `<div style="font-size: 0.75rem; color: var(--text-tertiary); margin-bottom: 5px;">📎 ${selectedFiles.length} dosya eklendi</div>` : '';
+            container.innerHTML += `<div class="ai-suggestion" style="margin-left: 20px; background: rgba(var(--accent-rgb), 0.1); border-right: 3px solid var(--accent); border-left: none; text-align: right;"><strong>Sen:</strong> ${fileInfo}${msg}</div>`;
+
+            // Clear inputs
+            input.value = '';
+            const attachmentContainer = document.getElementById('chat-attachments');
+            attachmentContainer.innerHTML = '';
+            container.scrollTop = container.scrollHeight;
+
+            // Waiting placeholder
+            const thinkingId = `jarvis-thinking-${Date.now()}`;
+            container.innerHTML += `<div id="${thinkingId}" class="ai-suggestion jarvis-resp" style="background: rgba(255,255,255,0.05); border-left: 3px solid var(--accent);"><strong>Jarvis:</strong> <div class="markdown-body"><em><i class="fas fa-spinner fa-spin"></i> Düşünüyor...</em></div></div>`;
+            container.scrollTop = container.scrollHeight;
+
+            try {
+                // Upload files first
+                const filenames = await uploadChatFiles();
+                selectedFiles = []; // Clear local list
+
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: msg, files: filenames })
+                });
+                const data = await res.json();
+
+                if (!res.ok || data.error) {
+                    throw new Error(data.error || `HTTP ${res.status}`);
+                }
+
+                // Markdown rendering (null/undefined guard)
+                const rawResponse = (typeof data.response === 'string') ? data.response : '';
+                const renderedResponse = rawResponse.trim().length > 0
+                    ? marked.parse(rawResponse)
+                    : '<em>Yanıt boş döndü.</em>';
+
+                const thinkingEl = document.getElementById(thinkingId);
+                if (thinkingEl) {
+                    thinkingEl.outerHTML = `<div class="ai-suggestion jarvis-resp" style="background: rgba(255,255,255,0.05); border-left: 3px solid var(--accent);"><strong>Jarvis:</strong> <div class="markdown-body">${renderedResponse}</div></div>`;
+                } else {
+                    container.innerHTML += `<div class="ai-suggestion jarvis-resp" style="background: rgba(255,255,255,0.05); border-left: 3px solid var(--accent);"><strong>Jarvis:</strong> <div class="markdown-body">${renderedResponse}</div></div>`;
+                }
+                container.scrollTop = container.scrollHeight;
+            } catch (e) {
+                const thinkingEl = document.getElementById(thinkingId);
+                if (thinkingEl) thinkingEl.remove();
+                container.innerHTML += `<div class="ai-suggestion" style="border-left: 3px solid var(--danger);"><strong>Sistem:</strong> Sohbet hatası oluştu: ${e}</div>`;
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+            }
+        }
+
+        // --- SIDEBAR SEARCH ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('sidebarSearch');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    const term = e.target.value.toLowerCase();
+                    document.querySelectorAll('.nav-item').forEach(item => {
+                        const text = item.textContent.trim().toLowerCase();
+                        if (term === '' || text.includes(term)) {
+                            item.style.display = 'flex';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+            }
+        });
+
+        function updateJobTable(jobs) {
+            const tbody = document.getElementById('jobs-table-body');
+            if (!tbody) return;
+
+            if (!jobs || jobs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: var(--text-secondary);">Aktif işlem yok</td></tr>`;
+                return;
+            }
+
+            // FILTER: Only show active jobs (generating, processing, uploading)
+            // Hide pending and completed/failed
+            const activeJobs = jobs.filter(j =>
+                ['generating', 'processing', 'rendering', 'uploading'].includes(j.status)
+            );
+
+            if (activeJobs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: var(--text-secondary);">Şu an üretimde işlem yok</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = activeJobs.map(job => {
+                let statusClass = 'status-pending';
+                let statusText = job.status;
+                let progressVal = job.progress || 0;
+
+                if (job.status === 'generating') { statusClass = 'status-processing'; statusText = 'Üretiliyor'; }
+                if (job.status === 'uploading') { statusClass = 'status-processing'; statusText = 'Yükleniyor'; }
+                if (job.status === 'uploaded') { statusClass = 'status-completed'; statusText = 'Tamamlandı'; }
+                if (job.status === 'failed') { statusClass = 'status-failed'; statusText = 'Hata'; }
+
+                return `
+                    <tr>
+                        <td style="font-family: monospace;">${job.account_id || '?'}</td>
+                        <td>${job.platform}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="progress-bar-container" style="width: 60px; height: 4px; margin: 0;">
+                                    <div class="progress-bar-fill" style="width: ${progressVal}%"></div>
+                                </div>
+                                <span style="font-size: 0.75rem;">${progressVal}%</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // --- NAVIGATION ---
+        function switchPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.dashboard-container').forEach(el => el.style.display = 'none');
+            // Show selected
+            const target = document.getElementById(`page-${pageId}`);
+            if (target) {
+                target.style.display = 'block';
+                if (pageId === 'settings') loadSettings();
+                if (pageId === 'schedule') loadSchedule();
+                if (pageId === 'analytics') loadAnalytics();
+            } else {
+                document.getElementById('page-dashboard').style.display = 'block';
+            }
+
+            // Update active nav
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            const navItem = document.querySelector(`.nav-item[onclick*="'${pageId}'"]`);
+            if (navItem) navItem.classList.add('active');
+        }
+
+        // --- LANGUAGE FUNCTIONS ---
+        function updateLanguage() {
+            const lang = currentLang;
+            document.querySelectorAll('[data-tr]').forEach(el => {
+                if (lang === 'tr' && el.dataset.tr) {
+                    el.textContent = el.dataset.tr;
+                } else if (lang === 'en' && el.dataset.en) {
+                    el.textContent = el.dataset.en;
+                }
+            });
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'tr' ? 'en' : 'tr';
+            updateLanguage();
+            addLog('SYSTEM', `Dil değiştirildi: ${currentLang.toUpperCase()}`);
+        }
+
+        // --- SETTINGS LOGIC ---
+        async function loadSettings() {
+            try {
+                const res = await fetch('/api/settings');
+                const data = await res.json();
+
+                // API Keys
+                document.getElementById('set-gemini-key').value = data.api_keys?.gemini || '';
+                document.getElementById('set-pexels-key').value = data.api_keys?.pexels || '';
+                document.getElementById('set-pixabay-key').value = data.api_keys?.pixabay || '';
+                document.getElementById('set-telegram-token').value = data.api_keys?.telegram_token || '';
+
+                // App Settings
+                document.getElementById('set-lang').value = data.general?.language || 'tr';
+                document.getElementById('set-quality').value = data.general?.quality || '1080';
+                document.getElementById('set-telegram-admin').value = data.api_keys?.telegram_admin_id || '';
+
+                // OAuth
+                document.getElementById('set-yt-client-id').value = data.youtube?.client_id || '';
+                document.getElementById('set-yt-client-secret').value = data.youtube?.client_secret || '';
+                document.getElementById('set-tt-client-key').value = data.tiktok?.client_key || '';
+                document.getElementById('set-tt-client-secret').value = data.tiktok?.client_secret || '';
+
+                addLog('SETTINGS', 'Ayarlar başarıyla yüklendi.');
+                loadAccounts(); // Refresh account lists for editor
+            } catch (e) {
+                console.error("Settings load failed", e);
+                addLog('ERROR', 'Ayarlar yüklenemedi: ' + e);
+            }
+        }
+
+        async function loadAccounts() {
+            try {
+                console.log('[loadAccounts] Fetching accounts...');
+                const res = await fetch('/api/accounts');
+                const data = await res.json();
+                console.log('[loadAccounts] Received data:', data);
+
+                const ytSelect = document.getElementById('yt-account-select');
+                const ttSelect = document.getElementById('tt-account-select');
+
+                console.log('[loadAccounts] YouTube select:', ytSelect);
+                console.log('[loadAccounts] TikTok select:', ttSelect);
+                console.log('[loadAccounts] YouTube accounts:', data.youtube);
+                console.log('[loadAccounts] TikTok accounts:', data.tiktok);
+
+                if (ytSelect) {
+                    ytSelect.innerHTML = '<option value="auto">Otomatik (Niche Bazlı)</option>';
+                    const ytList = document.getElementById('yt-accounts-list');
+                    if (ytList) ytList.innerHTML = '';
+
+                    data.youtube?.forEach(acc => {
+                        // Populate Select
+                        ytSelect.innerHTML += `<option value="${acc.id}">${acc.name}</option>`;
+
+                        // Populate List
+                        if (ytList) {
+                            ytList.innerHTML += `
+                                <div class="account-item" style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                                    <div>
+                                        <div style="font-weight:bold;">${acc.name}</div>
+                                        <div style="font-size:0.8rem; color:var(--text-secondary);">${acc.theme || 'General'}</div>
+                                    </div>
+                                    <div style="font-size:0.8rem; color: #10b981;">● Aktif</div>
+                                </div>
+                            `;
+                        }
+                    });
+
+                }
+
+                if (ttSelect) {
+                    ttSelect.innerHTML = '<option value="auto">Otomatik (Niche Bazlı)</option>';
+                    const ttList = document.getElementById('tt-accounts-list');
+                    if (ttList) ttList.innerHTML = '';
+
+                    data.tiktok?.forEach(acc => {
+                        // Populate Select
+                        ttSelect.innerHTML += `<option value="${acc.id}">${acc.name}</option>`;
+
+                        // Populate List
+                        if (ttList) {
+                            ttList.innerHTML += `
+                                <div class="account-item" style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                                    <div>
+                                        <div style="font-weight:bold;">${acc.name}</div>
+                                        <div style="font-size:0.8rem; color:var(--text-secondary);">${acc.theme || 'General'}</div>
+                                    </div>
+                                    <div style="font-size:0.8rem; color: #10b981;">● Aktif</div>
+                                </div>
+                            `;
+                        }
+                    });
+                }
+                console.log('[loadAccounts] Accounts loaded successfully');
+            } catch (e) {
+                console.error("[loadAccounts] Error:", e);
+            }
+        }
+
+        async function saveSettings() {
+            const settings = {
+                gemini: document.getElementById('set-gemini-key').value,
+                pexels: document.getElementById('set-pexels-key').value,
+                pixabay: document.getElementById('set-pixabay-key').value,
+                telegram_token: document.getElementById('set-telegram-token').value,
+                telegram_admin: document.getElementById('set-telegram-admin').value,
+                youtube_client_id: document.getElementById('set-yt-client-id').value,
+                youtube_client_secret: document.getElementById('set-yt-client-secret').value,
+                tiktok_client_key: document.getElementById('set-tt-client-key').value,
+                tiktok_client_secret: document.getElementById('set-tt-client-secret').value
+            };
+
+            try {
+                const res = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settings)
+                });
+                const result = await res.json();
+                if (result.status === 'success') {
+                    alert(currentLang === 'tr' ? "Ayarlar kaydedildi!" : "Settings saved!");
+                    addLog('SUCCESS', 'Ayarlar kaydedildi ve uygulandı.');
+                } else {
+                    alert("Hata: " + (result.error || result.message));
+                }
+            } catch (e) {
+                alert("Hata: " + e);
+            }
+        }
+
+        // --- DASHBOARD ACTIONS ---
+        async function scanAccounts() {
+            // addLog('SYSTEM', 'Hesap tarama işlemi başlatıldı...');
+            try {
+                await fetch('/api/scan/uploads', { method: 'POST' });
+                // Silent refresh
+                loadStats();
+                loadFiles();
+            } catch (e) { console.error(e); }
+        }
+
+        async function clearQueue() {
+            // Silent clear (no confirm)
+            try {
+                await fetch('/api/automation/clear', { method: 'POST' });
+                loadSchedule(); // Refresh list immediately
+            } catch (e) { console.error(e); }
+        }
+
+        async function forceGenerateAll() {
+            if (currentUser && currentUser.plan === 'free') {
+                return showToast("Pro Özellik", "Bu işlemi kullanmak için Planınızı yükseltmelisiniz.");
+            }
+
+            try {
+                const res = await fetch('/api/automation/force_generate', { method: 'POST' });
+                const data = await res.json();
+
+                if (data.status === 'success' && !data.data?.error && (data.data?.added || 0) > 0) {
+                    showToast(
+                        currentLang === 'tr' ? "Üretim Tetiklendi" : "Production Triggered",
+                        currentLang === 'tr'
+                            ? `${data.data.added} iş kuyruğa eklendi, üretim başlatıldı.`
+                            : `${data.data.added} jobs queued, production started.`
+                    );
+                } else {
+                    const err = data?.data?.error || data?.message || 'Force generate failed';
+                    showToast(
+                        currentLang === 'tr' ? "Üretim Başlatılamadı" : "Production Failed",
+                        err
+                    );
+                    console.error('[forceGenerateAll] API error:', data);
+                }
+            } catch (e) {
+                console.error('[forceGenerateAll] Request error:', e);
+                showToast(
+                    currentLang === 'tr' ? "Bağlantı Hatası" : "Connection Error",
+                    currentLang === 'tr' ? "Üretim tetikleme isteği gönderilemedi." : "Failed to send trigger request."
+                );
+            }
+        }
+
+        async function toggleAutomationMaster() {
+            if (currentUser && currentUser.plan === 'free') {
+                return showToast("Pro Özellik", "Otomasyonu başlatmak için planınızı yükseltmelisiniz.");
+            }
+
+            const btn = document.getElementById('masterLaunchBtn');
+            const isStarting = btn.innerText.includes('BAŞLAT') || btn.innerText.includes('START');
+
+            showToast(isStarting ? (currentLang === 'tr' ? "Otomasyon Başlatıldı" : "Automation Started") : (currentLang === 'tr' ? "Otomasyon Durduruldu" : "Automation Stopped"),
+                isStarting ? (currentLang === 'tr' ? "Sistem otomatik üretim moduna geçti." : "System entered auto-production mode.") : (currentLang === 'tr' ? "Otomatik üretim durduruldu." : "Auto-production stopped."));
+
+            try {
+                const endpoint = isStarting ? '/api/automation/start' : '/api/automation/stop';
+                const res = await fetch(endpoint, { method: 'POST' });
+                const data = await res.json();
+
+                const ok = data.success === true || data.status === 'success';
+                if (ok) {
+                    if (isStarting) {
+                        btn.innerHTML = `<i class="fas fa-stop"></i> <span data-tr="OTOMASYONU DURDUR" data-en="STOP AUTOMATION">${currentLang === 'tr' ? 'OTOMASYONU DURDUR' : 'STOP AUTOMATION'}</span>`;
+                        btn.style.background = 'var(--danger)';
+                    } else {
+                        btn.innerHTML = `<i class="fas fa-rocket"></i> <span data-tr="OTOMASYONU BAŞLAT" data-en="START AUTOMATION">${currentLang === 'tr' ? 'OTOMASYONU BAŞLAT' : 'START AUTOMATION'}</span>`;
+                        btn.style.background = 'var(--accent)';
+                    }
+                } else {
+                    showToast(
+                        currentLang === 'tr' ? "Otomasyon Hatası" : "Automation Error",
+                        (data && (data.message || data.error)) || (currentLang === 'tr' ? "İşlem başarısız" : "Operation failed")
+                    );
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        // --- DATA FETCHING ---
+
+        // Kanal istatistikleri — gerçek YouTube verisi, 1 saatlik cache
+        let _channelStatsRefreshTimer = null;
+
+        function _renderTrend(elId, pct) {
+            const el = document.getElementById(elId);
+            if (!el) return;
+            if (pct === null || pct === undefined) {
+                el.innerHTML = '<span style="color:var(--text-tertiary); font-size:0.7rem;">Yeni</span>';
+            } else if (pct > 0) {
+                el.innerHTML = `<span style="color:#10b981;">+${pct}% <i class="fas fa-arrow-up"></i></span>`;
+            } else if (pct < 0) {
+                el.innerHTML = `<span style="color:#ef4444;">${pct}% <i class="fas fa-arrow-down"></i></span>`;
+            } else {
+                el.innerHTML = `<span style="color:var(--text-tertiary);">0% <i class="fas fa-minus"></i></span>`;
+            }
+        }
+
+        async function loadChannelStats(force = false) {
+            const icon = document.getElementById('stats-refresh-icon');
+            if (icon) { icon.classList.add('fa-spin'); }
+            try {
+                const url = force ? '/api/channel_stats?force=1' : '/api/channel_stats';
+                const res = await fetch(url);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const d = await res.json();
+
+                // Abone
+                const subsEl = document.getElementById('stat-yt-subs');
+                if (subsEl) subsEl.textContent = d.yt_subscribers || '0';
+                _renderTrend('trend-yt-subs', d.yt_subs_change);
+
+                const viewsSubEl = document.getElementById('stat-yt-views-sub');
+                if (viewsSubEl) viewsSubEl.textContent = `Görüntüleme: ${d.yt_views || '0'}`;
+
+                // TikTok Takipçiler
+                const ttFollowersEl = document.getElementById('stat-tt-followers');
+                if (ttFollowersEl) ttFollowersEl.textContent = d.tt_followers || '0';
+                _renderTrend('trend-tt-followers', d.tt_followers_change);
+
+                // TikTok Beğeniler alt bilgi
+                const ttLikesEl = document.getElementById('stat-tt-likes');
+                if (ttLikesEl) ttLikesEl.textContent = `Beğeniler: ${d.tt_likes || '0'}`;
+
+                // Üretilen video
+                const prodEl = document.getElementById('stat-produced');
+                if (prodEl) prodEl.textContent = d.produced ?? 0;
+                const uploadEl = document.getElementById('stat-uploaded-count');
+                if (uploadEl) uploadEl.textContent = `Yüklenen: ${d.uploaded ?? 0}`;
+
+                // Gelir
+                const revEl = document.getElementById('stat-revenue');
+                if (revEl) revEl.textContent = d.revenue || '$0.00';
+                _renderTrend('trend-revenue', d.yt_views_change);
+
+                // Zaman bilgileri
+                const lastEl = document.getElementById('stats-last-updated');
+                if (lastEl) lastEl.textContent = d.last_updated || '--';
+                const nextEl = document.getElementById('stats-next-refresh');
+                if (nextEl) nextEl.textContent = d.next_refresh_min ?? 60;
+
+                // Eski compat (diğer yerler kullananlar için)
+                const ttLikes = document.getElementById('stat-tt-likes');
+                if (ttLikes) ttLikes.textContent = d.tt_videos ?? 0;
+
+            } catch (e) {
+                console.warn('[loadChannelStats] Hata:', e);
+                // Hata durumunda tüm kartlara hata göstergesi koy
+                ['stat-yt-subs', 'stat-yt-views', 'stat-produced', 'stat-revenue'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el && el.textContent === '--') el.textContent = '?';
+                });
+            } finally {
+                if (icon) { icon.classList.remove('fa-spin'); }
+            }
+        }
+
+        // Geriye uyumluluk
+        async function loadStats() {
+            await loadChannelStats(false);
+        }
+
+        // Saat başı otomatik yenileme (3600000 ms = 1 saat)
+        function _scheduleChannelStatsRefresh() {
+            if (_channelStatsRefreshTimer) clearInterval(_channelStatsRefreshTimer);
+            _channelStatsRefreshTimer = setInterval(() => {
+                loadChannelStats(true); // force=true: cache bypass, gerçek API çağrısı
+            }, 3600000);
+        }
+
+
+        async function loadFiles() {
+            try {
+                const res = await fetch('/api/files');
+                const files = await res.json();
+                const tbody = document.getElementById('projects-table-body');
+                tbody.innerHTML = '';
+
+                if (!files || files.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Dosya yok</td></tr>';
+                    return;
+                }
+
+                files.slice(0, 15).forEach(file => {
+                    const isYoutube = file.name.toLowerCase().includes('youtube') || file.name.toLowerCase().includes('short');
+                    // ONLY show "Shared/Success" files in recent projects as per user request
+                    // if (file.status && file.status !== 'shared') return; // Commented out to show all generated files for now
+
+                    const platformIcon = isYoutube ? '<i class="fab fa-youtube"></i>' : '<i class="fab fa-tiktok"></i>';
+                    const platformBadge = isYoutube ? 'badge-yt' : 'badge-tt';
+
+                    // Video Link Button
+                    let actionButtons = `
+                        <a href="/download/${file.name}" download class="btn-icon" style="color: var(--text-primary); margin-right:8px;" title="İndir"><i class="fas fa-download"></i></a>
+                    `;
+
+                    if (file.video_url) {
+                        actionButtons = `
+                            <a href="${file.video_url}" target="_blank" class="btn-icon" style="color: var(--accent); margin-right:8px;" title="İzle"><i class="fas fa-external-link-alt"></i></a>
+                            ${actionButtons}
+                        `;
+                    }
+
+                    const row = `
+                        <tr>
+                            <td>
+                                <div class="project-info">
+                                    <div class="project-thumb" style="background-image: url('${file.thumb || ''}'); background-color: var(--bg-tertiary);"></div>
+                                    <div>
+                                        <span class="project-title">${file.name}</span>
+                                        <span class="project-meta">${file.time}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge ${platformBadge}">${platformIcon} ${isYoutube ? 'YouTube' : 'TikTok'}</span></td>
+                            <td>${file.time.split(' ')[0]}</td>
+                            <td>${actionButtons}</td>
+                        </tr>
+                     `;
+                    tbody.insertAdjacentHTML('beforeend', row);
+                });
+            } catch (e) {
+                console.error("Files load failed", e);
+                document.getElementById('projects-table-body').innerHTML = '<tr><td colspan="4" style="text-align:center; color: var(--danger);">Hata oluştu</td></tr>';
+            }
+        }
+
+        // --- NOTIFICATIONS ---
+        function toggleNotifications() {
+            const dd = document.getElementById('notificationDropdown');
+            if (dd) dd.classList.toggle('show');
+        }
+
+        function clearNotifications() {
+            const list = document.getElementById('notificationList');
+            if (list) list.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-secondary);">Bildirim yok</div>';
+            const badge = document.getElementById('notification-badge');
+            if (badge) badge.style.display = 'none';
+        }
+
+        // Close on click outside
+        window.addEventListener('click', (e) => {
+            const dd = document.getElementById('notificationDropdown');
+            // Check if the clicked element is the button or its children
+            const btn = e.target.closest('button[onclick="toggleNotifications()"]');
+
+            if (dd && dd.classList.contains('show') && !dd.contains(e.target) && !btn) {
+                dd.classList.remove('show');
+            }
+        });
+
+        async function loadSuggestions() {
+            // Feature removed from dashboard
+            return;
+        }
+
+        async function loadSchedule() {
+            const container = document.getElementById('schedule-content');
+            try {
+                const res = await fetch('/api/automation/status');
+                const data = await res.json();
+                // Fix: use recent_jobs or filter from queue
+                // The backend returns 'recent_jobs' which includes active and recent finished
+                // We want to show pending/future jobs here for the schedule
+
+                // Let's filter client-side for now or use what's available
+                const jobs = data.recent_jobs || [];
+                const pendingJobs = jobs.filter(j => j.status === 'pending');
+
+                if (pendingJobs.length === 0) {
+                    container.innerHTML = `<p style="color: var(--text-secondary);">${currentLang === 'tr' ? 'Planlanmış video bulunmuyor.' : 'No scheduled videos.'}</p>`;
+                    return;
+                }
+
+                let html = '<div class="table-container"><table><thead><tr><th>Platform</th><th>Tema</th><th>Zaman</th></tr></thead><tbody>';
+                pendingJobs.slice(0, 10).forEach(j => {
+                    html += `<tr><td>${j.platform}</td><td>${j.theme}</td><td>${j.scheduled_time}</td></tr>`;
+                });
+                html += '</tbody></table></div>';
+                container.innerHTML = html;
+            } catch (e) { container.innerHTML = 'Hata: ' + e; }
+        }
+
+        async function loadAnalytics() {
+            const container = document.getElementById('analytics-content');
+            try {
+                const res = await fetch('/api/stats');
+                const data = await res.json();
+                container.innerHTML = `
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="glass-card" style="background: rgba(255,255,255,0.02)">
+                            <h4>YouTube Performance</h4>
+                            <p>${data.youtube_videos || 0} Videos Produced</p>
+                        </div>
+                        <div class="glass-card" style="background: rgba(255,255,255,0.02)">
+                            <h4>TikTok Performance</h4>
+                            <p>${data.tiktok_videos || 0} Videos Produced</p>
+                        </div>
+                    </div>
+                `;
+            } catch (e) { container.innerHTML = 'Hata: ' + e; }
+        }
+
+        function useSuggestion(title, type) {
+            const platform = type.toLowerCase().includes('youtube') ? 'youtube' : 'tiktok';
+            const prefix = platform === 'youtube' ? 'yt' : 'tt';
+
+            switchPage('editor');
+            document.getElementById(`${prefix}-topic`).value = title;
+            addLog('AI', `Öneri seçildi: ${title}`);
+        }
+
+        async function generateVideo(platform) {
+            const accSelect = document.getElementById(`${platform === 'youtube' ? 'yt' : 'tt'}-account-select`);
+            const accountId = accSelect.value;
+
+            // Silent generation (no confirm, no extra notification - relying on existing bottom-right socket progress)
+            try {
+                const res = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        platform: platform,
+                        topic: '', // Auto-select based on account
+                        niche: '',  // Auto-select
+                        account: accountId
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'started') {
+                    // Silent success, socket will update UI
+                    setTimeout(loadStats, 2000);
+                } else {
+                    console.error('Hata: ' + (data.message || data.error));
+                }
+            } catch (e) {
+                console.error('Bağlantı hatası: ' + e);
+            }
+        }
+
+        async function startAutomation() {
+            if (confirm(currentLang === 'tr' ? "Otomasyonu başlatmak istiyor musunuz?" : "Start Automation?")) {
+                try {
+                    const res = await fetch('/api/automation/start', { method: 'POST' });
+                    const json = await res.json();
+                    if (json.success) {
+                        addLog('SUCCESS', 'Otomasyon motoru başlatıldı.');
+                        document.getElementById('btn-automation').style.background = 'var(--success)';
+                    } else {
+                        addLog('ERROR', 'Otomasyon başlatılamadı: ' + json.message);
+                    }
+                } catch (e) {
+                    addLog('ERROR', 'Hata: ' + e);
+                }
+            }
+        }
+
+        // --- ONE-CLICK UPDATE ---
+        let updateInProgress = false;
+
+        function setUpdateButtonState(label, icon = 'fa-download', disabled = false) {
+            const btn = document.getElementById('oneClickUpdateBtn');
+            if (!btn) return;
+            btn.disabled = !!disabled;
+            btn.innerHTML = `<i class="fas ${icon}"></i> <span>${label}</span>`;
+        }
+
+        async function oneClickUpdate() {
+            if (updateInProgress) return;
+            if (!confirm('Uygulama güncelleme için kapanacaktır. Devam edilsin mi?')) return;
+
+            updateInProgress = true;
+            setUpdateButtonState('Güncelleme kontrol ediliyor...', 'fa-spinner fa-spin', true);
+            addLog('UPDATE', 'Tek tuş güncelleme akışı başlatıldı.');
+
+            let started = false;
+
+            try {
+                const checkRes = await fetch('/api/update/check');
+                const checkData = await checkRes.json();
+
+                if (!checkRes.ok) {
+                    throw new Error(checkData.error || `Güncelleme kontrolü başarısız (HTTP ${checkRes.status})`);
+                }
+
+                addLog('UPDATE', `Sürüm kontrolü: mevcut=${checkData.current_version}, son=${checkData.latest_version}`);
+
+                if (!checkData.has_update) {
+                    showToast('Güncelleme', `Sistem güncel (v${checkData.current_version})`);
+                    addLog('UPDATE', 'Yeni sürüm bulunamadı.');
+                    setUpdateButtonState('Tek Tuş Güncelle', 'fa-download', false);
+                    return;
+                }
+
+                setUpdateButtonState('Güncelleme indiriliyor...', 'fa-spinner fa-spin', true);
+                addLog('UPDATE', `Yeni sürüm bulundu: v${checkData.latest_version}. Güncelleme tetikleniyor...`);
+
+                const triggerRes = await fetch('/api/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        version: checkData.latest_version,
+                        url: checkData.url,
+                        sha256: checkData.sha256,
+                    })
+                });
+                const triggerData = await triggerRes.json();
+
+                if (!triggerRes.ok) {
+                    throw new Error(triggerData.error || `Güncelleme başlatılamadı (HTTP ${triggerRes.status})`);
+                }
+
+                if (triggerData.status === 'up_to_date') {
+                    showToast('Güncelleme', `Sistem güncel (v${triggerData.current_version})`);
+                    addLog('UPDATE', 'Backend güncel döndü, güncelleme tetiklenmedi.');
+                    setUpdateButtonState('Tek Tuş Güncelle', 'fa-download', false);
+                    return;
+                }
+
+                if (triggerData.status !== 'starting_update') {
+                    throw new Error(triggerData.error || 'Güncelleme süreci başlatılamadı');
+                }
+
+                started = true;
+                setUpdateButtonState('Güncelleme başlatıldı...', 'fa-check', true);
+                addLog('UPDATE', `Updater başlatıldı. Hedef sürüm: v${triggerData.latest_version}`);
+                showToast('Güncelleme', 'Güncelleme başlatıldı. Uygulama kapanıp yeni sürüm açılacak.');
+            } catch (e) {
+                const errMsg = (e && e.message) ? e.message : String(e);
+                addLog('ERROR', `Güncelleme hatası: ${errMsg}`);
+                showToast('Güncelleme Hatası', errMsg);
+                setUpdateButtonState('Tek Tuş Güncelle', 'fa-download', false);
+            } finally {
+                if (!started) {
+                    updateInProgress = false;
+                }
+            }
+        }
+
+        // --- SYSTEM CHECK ---
+        async function runSystemCheck() {
+            const loading = document.getElementById('system-loading');
+            const results = document.getElementById('system-results');
+
+            if (loading) loading.style.display = 'block';
+            if (results) results.style.display = 'none';
+
+            try {
+                const res = await fetch('/api/system/check', { method: 'POST' });
+                const data = await res.json();
+
+                if (loading) loading.style.display = 'none';
+                if (results) results.style.display = 'block';
+
+                // Render AI Summary
+                const summaryEl = document.getElementById('ai-summary-content');
+                if (summaryEl) summaryEl.innerHTML = data.ai_summary;
+
+                // Render Sections
+                renderCheckList('res-network', data.results.network);
+                renderCheckList('res-keys', data.results.api_keys);
+                renderCheckList('res-storage', data.results.storage);
+                renderCheckList('res-deps', data.results.dependencies);
+
+                addLog("SYSTEM", "Sistem taraması tamamlandı.", "success");
+
+            } catch (e) {
+                if (loading) loading.style.display = 'none';
+                alert("Tarama hatası: " + e);
+            }
+        }
+
+        function renderCheckList(elementId, items) {
+            const container = document.getElementById(elementId);
+            if (!container || !items) return;
+
+            let html = '<div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">';
+
+            for (const [key, val] of Object.entries(items)) {
+                const icon = val.status === 'ok' ? '<i class="fas fa-check-circle" style="color:#10b981;"></i>' :
+                    val.status === 'warning' ? '<i class="fas fa-exclamation-triangle" style="color:#f59e0b;"></i>' :
+                        '<i class="fas fa-times-circle" style="color:#ef4444;"></i>';
+
+                html += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px; background:rgba(255,255,255,0.03); border-radius:6px;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            ${icon}
+                            <strong>${key}</strong>
+                        </div>
+                        <span style="font-size:0.85rem; color:var(--text-secondary);">${val.message}</span>
+                    </div>
+                `;
+            }
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // --- INIT ---
+        window.addEventListener('DOMContentLoaded', () => {
+            updateLanguage();
+            loadChannelStats(false);   // Sayfa açılışında kanal verisi çek (önce cache kontrol)
+            loadFiles();
+            loadAccounts();
+            _scheduleChannelStatsRefresh();  // Saat başı otomatik yenileme kur
+
+            // Son güncelleme sayacını her dakika güncelle (UI'da countdown)
+            setInterval(() => {
+                const nextEl = document.getElementById('stats-next-refresh');
+                if (nextEl) {
+                    const cur = parseInt(nextEl.textContent) || 0;
+                    if (cur > 0) nextEl.textContent = cur - 1;
+                }
+            }, 60000);
+
+            // Dosya listesi her 60 saniyede yenile
+            setInterval(loadFiles, 60000);
+        });
+
+
+        // --- ACCOUNT MANAGEMENT FUNCTIONS ---
+
+        async function loadAccountsUI() {
+            try {
+                const res = await fetch('/api/accounts');
+                const data = await res.json();
+                console.log("Loaded Accounts:", data);
+
+                // Helper to render list
+                const renderList = (listId, accounts) => {
+                    const listEl = document.getElementById(listId);
+                    if (accounts && accounts.length > 0) {
+                        listEl.innerHTML = accounts.map(acc => `
+                            <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                <div>
+                                    <div style="font-weight:bold; color: #fff;">${acc.name}</div>
+                                    <div style="font-size:0.8rem; color: #a1a1aa;">ID: ${acc.id} | Niche: ${acc.theme || 'Genel'}</div>
+                                </div>
+                                <button class="btn-primary" style="background:rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding:5px 10px;" onclick="deleteAccount('${acc.id}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        `).join('');
+                    } else {
+                        listEl.innerHTML = '<p style="color:var(--text-secondary); font-style: italic;">Hesap bulunamadı.</p>';
+                    }
+                };
+
+                renderList('yt-accounts-list', data.youtube);
+                renderList('tt-accounts-list', data.tiktok);
+
+                // Populate Manual Account Selector
+                const manualSelect = document.getElementById('manual-account-select');
+                if (manualSelect) {
+                    let options = '<option value="">Platform/Hesap Seçin</option>';
+                    if (data.youtube && data.youtube.length > 0) {
+                        options += '<optgroup label="YouTube" style="color:#000;">';
+                        data.youtube.forEach(acc => {
+                            options += `<option value="${acc.id}" data-platform="youtube" style="color:#000;">${acc.name}</option>`;
+                        });
+                        options += '</optgroup>';
+                    }
+                    if (data.tiktok && data.tiktok.length > 0) {
+                        options += '<optgroup label="TikTok" style="color:#000;">';
+                        data.tiktok.forEach(acc => {
+                            options += `<option value="${acc.id}" data-platform="tiktok" style="color:#000;">${acc.name}</option>`;
+                        });
+                        options += '</optgroup>';
+                    }
+                    manualSelect.innerHTML = options;
+                }
+
+            } catch (e) {
+                console.error("Load Accounts Error:", e);
+                addLog('ERROR', 'Hesaplar yüklenirken hata oluştu: ' + e);
+            }
+        }
+
+        // --- MANUAL PRODUCTION FUNCTIONS ---
+        function setRatio(ratio) {
+            document.getElementById('manual-ratio').value = ratio;
+            document.querySelectorAll('.ratio-btn').forEach(btn => {
+                btn.style.background = 'var(--bg-secondary)';
+                btn.classList.remove('active');
+            });
+            const activeBtn = document.getElementById(ratio === '9:16' ? 'ratio-9-16' : 'ratio-16-9');
+            if (activeBtn) {
+                activeBtn.style.background = 'var(--accent)';
+                activeBtn.classList.add('active');
+            }
+        }
+
+        async function generateManualVideo() {
+            const topic = document.getElementById('manual-topic').value;
+            const accountSelect = document.getElementById('manual-account-select');
+            const accountId = accountSelect.value;
+            const duration = document.getElementById('manual-duration').value;
+            const ratio = document.getElementById('manual-ratio').value;
+
+            if (!topic) { alert("Lütfen bir konu girin."); return; }
+            if (!accountId) { alert("Lütfen bir hesap seçin."); return; }
+
+            const selectedOption = accountSelect.options[accountSelect.selectedIndex];
+            const platform = selectedOption.getAttribute('data-platform');
+
+            if (confirm(`${platform.toUpperCase()} için "${topic}" konulu video üretilsin mi?\nSüre: ${duration}s | Format: ${ratio}`)) {
+                try {
+                    addLog('SYSTEM', `Manuel üretim başlatılıyor: ${topic} (${duration}s, ${ratio})`);
+                    showProgressNotification("Video Üretiliyor...");
+
+                    const res = await fetch('/api/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            platform: platform,
+                            account: accountId,
+                            topic: topic,
+                            duration: parseInt(duration),
+                            aspect_ratio: ratio
+                        })
+                    });
+
+                    const data = await res.json();
+                    if (data.status === 'started') {
+                        addLog('SUCCESS', 'Üretim işlemi sunucuya iletildi.');
+                    } else {
+                        addLog('ERROR', 'Hata: ' + (data.message || data.error));
+                        hideProgressNotification();
+                    }
+                } catch (e) {
+                    alert("Hata: " + e);
+                    hideProgressNotification();
+                }
+            }
+        }
+
+        function openAddAccountModal(platform) {
+            document.getElementById('add-account-modal').style.display = 'block';
+            document.getElementById('new-acc-platform').value = platform;
+            document.getElementById('modal-title').innerText = platform === 'youtube' ? 'YouTube Hesabı Ekle' : 'TikTok Hesabı Ekle';
+
+            // Toggle OAuth fields (Only YouTube needs ID/Secret visible usually, keeping it simple)
+            const oauthFields = document.getElementById('yt-oauth-fields');
+            oauthFields.style.display = platform === 'youtube' ? 'block' : 'none';
+            document.getElementById('tt-fields').style.display = platform === 'tiktok' ? 'block' : 'none';
+        }
+
+        // Notification Logic
+        const notifList = document.getElementById('notification-list');
+        const notifBadge = document.getElementById('notif-badge');
+        let unreadCount = 0;
+
+        function toggleNotifications() {
+            const panel = document.getElementById('notification-panel');
+            panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+            if (panel.style.display === 'block') {
+                unreadCount = 0;
+                updateBadge();
+            }
+        }
+
+        function clearNotifications() {
+            notifList.innerHTML = '<li class="notification-item" style="justify-content:center; color:var(--text-tertiary);">Bildirim yok</li>';
+            unreadCount = 0;
+            updateBadge();
+        }
+
+        function updateBadge() {
+            if (unreadCount > 0) {
+                notifBadge.style.display = 'block';
+                notifBadge.innerText = unreadCount;
+            } else {
+                notifBadge.style.display = 'none';
+            }
+        }
+
+        function addNotificationUI(data) {
+            // Remove "No notifications" placeholder
+            if (notifList.children.length === 1 && notifList.children[0].innerText === 'Bildirim yok') {
+                notifList.innerHTML = '';
+            }
+
+            const item = document.createElement('li');
+            item.className = `notification-item notif-${data.type || 'system'}`;
+
+            let iconClass = 'fa-info-circle';
+            if (data.type === 'upload') iconClass = 'fa-check-circle';
+            if (data.type === 'milestone') iconClass = 'fa-trophy';
+            if (data.type === 'error') iconClass = 'fa-exclamation-circle';
+
+            item.innerHTML = `
+                <div class="notif-icon"><i class="fas ${iconClass}"></i></div>
+                <div class="notif-content">
+                    <h5>${data.title}</h5>
+                    <p>${data.message}</p>
+                    <div class="notif-time">${data.timestamp || 'Şimdi'}</div>
+                </div>
+            `;
+
+            notifList.insertBefore(item, notifList.firstChild);
+
+            // Show toast if panel is closed
+            const panel = document.getElementById('notification-panel');
+            if (panel.style.display !== 'block') {
+                unreadCount++;
+                updateBadge();
+                // Reuse existing progress notification style for a quick toast
+                showToast(data.title, data.message);
+            }
+        }
+
+        function showToast(title, message) {
+            // Create temporary toast
+            const toast = document.createElement('div');
+            toast.className = 'progress-notification';
+            toast.style.animation = 'slideInRight 0.3s ease-out';
+            toast.innerHTML = `
+                <div class="progress-header">
+                    <div class="progress-title">
+                        <div class="progress-icon"><i class="fas fa-bell"></i></div>
+                        <div>
+                            <div style="font-size:0.9rem">${title}</div>
+                            <div style="font-size:0.8rem; font-weight:400; color:var(--text-secondary)">${message}</div>
+                        </div>
+                    </div>
+                    <button class="progress-close" onclick="this.parentElement.parentElement.remove()">&times;</button>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'slideOutRight 0.3s ease-in forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 10000); // 10 seconds as requested
+        }
+
+        // Socket Events
+        socket.on('connect', () => {
+            console.log('Socket connected');
+            document.getElementById('connection-status').className = 'status-indicator status-active';
+            document.getElementById('connection-text').innerText = 'Online';
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Socket disconnected');
+            document.getElementById('connection-status').className = 'status-indicator status-inactive';
+            document.getElementById('connection-text').innerText = 'Offline';
+        });
+
+        // NEW: Notification Event
+        socket.on('notification', (data) => {
+            console.log("Notification received:", data);
+            addNotificationUI(data);
+            // Play sound?
+            // const audio = new Audio('/static/sounds/notification.mp3');
+            // audio.play().catch(e => console.log('Audio play failed', e));
+        });
+
+        socket.on('log', (data) => {
+            if (data && data.message) {
+                console.log('[LOG]', data.message);
+            }
+        });
+
+        // --- VIDEO PROGRESS NOTIFICATION SYSTEM ---
+        socket.on('progress', (data) => {
+            console.log('[PROGRESS]', data);
+            if (data && data.percent !== undefined) {
+                showProgressNotification(
+                    data.status || 'Video üretiliyor...',
+                    data.percent,
+                    data.step || ''
+                );
+                if (data.percent >= 100) {
+                    setTimeout(hideProgressNotification, 3000);
+                    loadFiles();
+                }
+            }
+        });
+
+        socket.on('generation_progress', (data) => {
+            console.log('[GEN_PROGRESS]', data);
+            showProgressNotification(
+                data.message || data.status || 'Üretim devam ediyor...',
+                data.progress || data.percent || 0,
+                data.step || ''
+            );
+            if ((data.progress || data.percent || 0) >= 100) {
+                setTimeout(hideProgressNotification, 3000);
+                loadFiles();
+            }
+        });
+
+        socket.on('generation_complete', (data) => {
+            showProgressNotification('Video üretimi tamamlandı! ✅', 100, 'complete');
+            setTimeout(hideProgressNotification, 5000);
+            loadFiles();
+            showToast('Üretim Tamamlandı', data.filename || 'Video başarıyla üretildi!');
+        });
+
+        socket.on('generation_error', (data) => {
+            hideProgressNotification();
+            showToast('Üretim Hatası', data.error || 'Video üretiminde hata oluştu.');
+        });
+
+        function showProgressNotification(status, percent = 0, step = '') {
+            let container = document.getElementById('progress-notification');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'progress-notification';
+                document.body.appendChild(container);
+            }
+            container.style.display = 'block';
+            container.className = 'progress-notification';
+            container.innerHTML = `
+                <div class="progress-header">
+                    <div class="progress-title">
+                        <div class="progress-icon"><i class="fas fa-film"></i></div>
+                        <div>
+                            <div style="font-size:0.9rem">Video Üretimi</div>
+                            <div style="font-size:0.8rem; font-weight:400; color:var(--text-secondary)">${status}</div>
+                        </div>
+                    </div>
+                    <button class="progress-close" onclick="hideProgressNotification()">&times;</button>
+                </div>
+                <div class="progress-status">${step}</div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" style="width: ${percent}%"></div>
+                </div>
+                <div class="progress-percentage">${Math.round(percent)}%</div>
+            `;
+        }
+
+        function hideProgressNotification() {
+            const container = document.getElementById('progress-notification');
+            if (container) {
+                container.classList.add('closing');
+                setTimeout(() => {
+                    container.style.display = 'none';
+                    container.classList.remove('closing');
+                }, 300);
+            }
+        }
+
+        // --- URL/PORT GİZLEME ---
+        document.title = 'Stainless Max';
+        if (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') {
+            try { history.replaceState(null, 'Stainless Max', '/'); } catch (e) { }
+        }
+
+        function closeAddAccountModal() {
+            document.getElementById('add-account-modal').style.display = 'none';
+            // Clear fields
+            document.getElementById('new-acc-id').value = '';
+            document.getElementById('new-acc-name').value = '';
+            document.getElementById('new-acc-client-id').value = '';
+            document.getElementById('new-acc-client-secret').value = '';
+        }
+
+        async function submitNewAccount() {
+            const platform = document.getElementById('new-acc-platform').value;
+            const id = document.getElementById('new-acc-id').value;
+            const name = document.getElementById('new-acc-name').value;
+            const niche = document.getElementById('new-acc-niche').value;
+            const clientId = document.getElementById('new-acc-client-id').value;
+            const clientSecret = document.getElementById('new-acc-client-secret').value;
+
+            if (!id) { alert("ID zorunludur!"); return; }
+
+            try {
+                const res = await fetch('/api/accounts/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id, platform, name, niche,
+                        client_id: clientId,
+                        client_secret: clientSecret,
+                        login: document.getElementById('new-acc-tt-login').value,
+                        password: document.getElementById('new-acc-tt-password').value
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    addLog('SUCCESS', 'Hesap başarıyla eklendi.');
+                    closeAddAccountModal();
+                    loadAccountsUI(); // Refresh list
+                } else {
+                    alert('Hata: ' + data.error);
+                }
+            } catch (e) {
+                alert('Bağlantı hatası: ' + e);
+            }
+        }
+
+        async function deleteAccount(id) {
+            if (!confirm(`Bu hesabı (${id}) silmek istediğinize emin misiniz?`)) return;
+
+            try {
+                const res = await fetch('/api/accounts/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    addLog('INFO', 'Hesap silindi.');
+                    loadAccountsUI();
+                } else {
+                    alert('Hata: ' + data.error);
+                }
+            } catch (e) {
+                alert('Silme işleminde hata: ' + e);
+            }
+        }
+
+    </script>
+
+    <!-- Progress Notification Container -->
+    <div id="progress-notification" style="display: none;"></div>
+
+</body>
+
+</html>

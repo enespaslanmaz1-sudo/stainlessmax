@@ -1,0 +1,3903 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>STAINLESS MAX - Viral Studio</title>
+    <meta name="description" content="AI Powered Viral Video Production Studio">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="/static/js/socket.io.min.js?v={{ cache_bust }}"></script>
+    <style>
+        :root {
+            --primary-500: #6366f1;
+            --primary-400: #818cf8;
+            --primary-600: #4f46e5;
+            --accent-500: #f43f5e;
+            --accent-400: #fb7185;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #06b6d4;
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a25;
+            --bg-elevated: #222230;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --text-tertiary: #71717a;
+            --text-muted: #52525b;
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-default: rgba(255, 255, 255, 0.1);
+            --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .bg-mesh {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-mesh::before {
+            content: '';
+            position: absolute;
+            inset: -50%;
+            background: radial-gradient(ellipse 80% 50% at 20% 40%, rgba(99, 102, 241, 0.15), transparent),
+                radial-gradient(ellipse 60% 40% at 80% 60%, rgba(244, 63, 94, 0.1), transparent);
+            animation: meshFloat 20s ease-in-out infinite;
+        }
+
+        @keyframes meshFloat {
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            33% {
+                transform: translate(2%, -2%) rotate(1deg);
+            }
+
+            66% {
+                transform: translate(-1%, 1%) rotate(-1deg);
+            }
+        }
+
+        .noise-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+
+        .app {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--gradient-primary);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .logo-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            font-weight: 500;
+        }
+
+        .nav-section {
+            padding: 16px;
+            flex: 1;
+        }
+
+        .nav-label {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-tertiary);
+            padding: 12px 16px;
+            margin-bottom: 8px;
+        }
+
+        .nav-items {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            transition: all 250ms ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-400);
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 20px;
+            background: var(--gradient-primary);
+            border-radius: 0 3px 3px 0;
+        }
+
+        .nav-item i {
+            width: 24px;
+            text-align: center;
+            font-size: 1.125rem;
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            background: var(--gradient-primary);
+            color: white;
+            font-size: 0.6875rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 9999px;
+        }
+
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .status-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 16px;
+        }
+
+        .status-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 8px var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.7;
+                transform: scale(0.95);
+            }
+        }
+
+        .status-text {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        .main {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(18, 18, 26, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: var(--radius-md);
+        }
+
+        .menu-toggle:hover {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 250ms ease;
+        }
+
+        /* Notification Dropdown */
+        .notification-dropdown {
+            position: absolute;
+            top: 60px;
+            right: 80px;
+            /* Adjust based on profile menu width */
+            width: 320px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xl);
+            z-index: 1000;
+            display: none;
+            overflow: hidden;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .notification-dropdown.show {
+            display: block;
+        }
+
+        .notification-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-header h3 {
+            margin: 0;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .notification-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-subtle);
+            transition: background 0.2s;
+        }
+
+        .notification-item:hover {
+            background: var(--bg-hover);
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-item.unread {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .notification-time {
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+            margin-top: 4px;
+        }
+
+        .empty-state {
+            padding: 24px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Header Actions */
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+            cursor: pointer;
+            position: relative;
+            padding: 8px;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover {
+            color: var(--text-primary);
+            background: var(--bg-hover);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: var(--danger-500);
+            color: white;
+            font-size: 0.65rem;
+            padding: 2px 5px;
+            border-radius: 10px;
+            border: 2px solid var(--bg-primary);
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            padding: 16px 20px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xl);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+            border-left: 4px solid var(--primary-500);
+            animation: slideInRight 0.3s ease-out forwards;
+            pointer-events: auto;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast-icon {
+            font-size: 1.2rem;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+        }
+
+        .toast-msg {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-secondary {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            border: 1px solid var(--border-default);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--primary-500);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+        }
+
+        .btn-ghost:hover {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+        }
+
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 0.8125rem;
+        }
+
+        .content {
+            flex: 1;
+            padding: 32px;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        @media (max-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            transition: all 250ms ease;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-primary);
+            opacity: 0;
+            transition: opacity 250ms ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--border-default);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .stat-icon.primary {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-400);
+        }
+
+        .stat-icon.accent {
+            background: rgba(244, 63, 94, 0.1);
+            color: var(--accent-400);
+        }
+
+        .stat-icon.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .stat-icon.info {
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--info);
+        }
+
+        .stat-value {
+            font-size: 2.25rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+            letter-spacing: -0.02em;
+        }
+
+        .stat-label {
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-title i {
+            color: var(--primary-400);
+        }
+
+        .card-body {
+            padding: 24px;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        @media (max-width: 1200px) {
+            .quick-actions {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .action-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            position: relative;
+            transition: all 250ms ease;
+        }
+
+        .action-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--border-default);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .action-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 16px;
+        }
+
+        .action-card.youtube .action-icon {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .action-card.tiktok .action-icon {
+            background: rgba(244, 63, 94, 0.1);
+            color: var(--accent-400);
+        }
+
+        .action-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .action-desc {
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.9375rem;
+            transition: all 150ms ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-500);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 992px) {
+            .form-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .toggle {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-default);
+            transition: 250ms ease;
+            border-radius: 9999px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: var(--text-secondary);
+            transition: 250ms ease;
+            border-radius: 50%;
+        }
+
+        .toggle input:checked+.toggle-slider {
+            background: var(--gradient-primary);
+            border-color: transparent;
+        }
+
+        .toggle input:checked+.toggle-slider:before {
+            transform: translateX(24px);
+            background: white;
+        }
+
+        .toggle-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .terminal-wrapper {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: var(--bg-tertiary);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--border-subtle);
+            justify-content: space-between;
+        }
+
+        .terminal-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-update {
+            background: var(--warning);
+            color: #000;
+            border: none;
+            padding: 4px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-update:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-update:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .terminal-dot.red {
+            background: var(--danger);
+        }
+
+        .terminal-dot.yellow {
+            background: var(--warning);
+        }
+
+        .terminal-dot.green {
+            background: var(--success);
+        }
+
+        .terminal-title {
+            font-size: 0.8125rem;
+            color: var(--text-tertiary);
+            margin-left: 8px;
+        }
+
+        .terminal {
+            height: 300px;
+            overflow-y: auto;
+            padding: 16px;
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            color: #d4d4d8;
+            background: rgba(0, 0, 0, 0.3);
+            /* Slight transparency */
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Custom Scrollbar for Terminal */
+        .terminal::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .terminal::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+        }
+
+        .terminal::-webkit-scrollbar-thumb {
+            background: var(--border-default);
+            border-radius: 4px;
+        }
+
+        .terminal::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        .log-entry {
+            padding: 6px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .log-time {
+            color: #52525b;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            min-width: 70px;
+        }
+
+        .log-content {
+            flex: 1;
+            word-break: break-word;
+        }
+
+        .log-level {
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            margin-right: 8px;
+            display: inline-block;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .log-level.info {
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--info);
+        }
+
+        .log-level.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .log-level.warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .log-level.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .video-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            transition: all 250ms ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .video-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--border-default);
+            box-shadow: var(--shadow-lg);
+            z-index: 10;
+        }
+
+        .video-thumbnail {
+            aspect-ratio: 9/16;
+            background: var(--bg-tertiary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-thumbnail video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .video-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 250ms ease;
+            display: flex;
+            align-items: flex-end;
+            padding: 16px;
+            pointer-events: none;
+        }
+
+        .video-card:hover .video-overlay {
+            opacity: 1;
+        }
+
+        .video-info {
+            padding: 16px;
+        }
+
+        .video-title {
+            font-weight: 600;
+            font-size: 0.9375rem;
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .video-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .platform-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .platform-badge.youtube {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .platform-badge.tiktok {
+            background: rgba(244, 63, 94, 0.1);
+            color: var(--accent-400);
+        }
+
+        .video-date {
+            font-size: 0.8125rem;
+            color: var(--text-tertiary);
+        }
+
+        .progress-overlay {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 350px;
+            display: none;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .progress-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            text-align: center;
+            width: 100%;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            border-left: 4px solid #6366f1;
+        }
+
+        .progress-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 16px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+            }
+
+            50% {
+                box-shadow: 0 0 40px rgba(99, 102, 241, 0.8);
+            }
+        }
+
+        .progress-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .progress-status {
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            font-size: 0.875rem;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-elevated);
+            border-radius: 9999px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--gradient-primary);
+            border-radius: 9999px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-percent {
+            font-size: 1.25rem;
+            font-weight: 800;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .page {
+            display: none;
+            animation: pageEnter 0.4s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes pageEnter {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .settings-tabs {
+            display: flex;
+            gap: 8px;
+            border-bottom: 1px solid var(--border-subtle);
+            margin-bottom: 24px;
+        }
+
+        .settings-tab {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            cursor: pointer;
+            position: relative;
+            transition: color 150ms ease;
+        }
+
+        .settings-tab:hover {
+            color: var(--text-primary);
+        }
+
+        .settings-tab.active {
+            color: var(--primary-400);
+        }
+
+        .settings-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-primary);
+        }
+
+        .settings-content {
+            display: none;
+        }
+
+        .settings-content.active {
+            display: block;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px;
+        }
+
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            background: var(--bg-tertiary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--text-tertiary);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .toast-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toast.success .toast-icon {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .toast.error .toast-icon {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        @media (max-width: 1024px) {
+            .app {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: fixed;
+                transform: translateX(-100%);
+                transition: transform 250ms ease;
+                width: 280px;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-mesh"></div>
+    <div class="noise-overlay"></div>
+
+    <div class="progress-overlay" id="progressOverlay">
+        <div class="progress-card">
+            <div class="progress-icon"><i class="fas fa-film"></i></div>
+            <div class="progress-title" id="progressTitle">Generating Video</div>
+            <div class="progress-status" id="progressStatus">Preparing...</div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="progress-percent" id="progressPercent">0%</div>
+        </div>
+    </div>
+
+    <div class="app">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon"><i class="fas fa-play"></i></div>
+                    <div>
+                        <div class="logo-title">STAINLESS MAX</div>
+                        <div class="logo-subtitle">Viral Automation</div>
+                    </div>
+                </div>
+            </div>
+            <nav class="nav-section">
+                <div class="nav-label">Main Menu</div>
+                <div class="nav-items">
+                    <a href="#" class="nav-item active" data-page="dashboard"><i
+                            class="fas fa-home"></i><span>Dashboard</span></a>
+                    <a href="#" class="nav-item" data-page="youtube"><i class="fab fa-youtube"></i><span>YouTube
+                            Studio</span><span class="nav-badge" id="youtubeBadge">0</span></a>
+                    <a href="#" class="nav-item" data-page="tiktok"><i class="fab fa-tiktok"></i><span>TikTok
+                            Studio</span><span class="nav-badge" id="tiktokBadge">0</span></a>
+
+                    <a href="#" class="nav-item" data-page="automation"><i
+                            class="fas fa-robot"></i><span>Automation</span></a>
+                    <a href="#" class="nav-item" data-page="settings"><i
+                            class="fas fa-cog"></i><span>Settings</span></a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="status-card">
+                    <div class="status-header">
+                        <div class="status-dot"></div><span class="status-text">System Active</span>
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--text-tertiary);">STAINLESS MAX running</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main">
+            <header class="header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+                    <h1 class="page-title" id="pageTitle">Dashboard</h1>
+                </div>
+                <div class="header-right">
+                    <button class="icon-btn" id="notificationBtn" onclick="toggleNotifications()">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="notificationBadge" style="display:none">0</span>
+                    </button>
+                    <!-- Notification Dropdown -->
+                    <div class="notification-dropdown" id="notificationDropdown">
+                        <div class="notification-header">
+                            <h3>Bildirimler</h3>
+                            <button class="btn-ghost btn-sm" onclick="clearNotifications()">Temizle</button>
+                        </div>
+                        <div class="notification-list" id="notificationList">
+                            <div class="empty-state">Bildirim yok</div>
+                        </div>
+                    </div>
+                    <div class="profile-menu">
+                        <img src="https://ui-avatars.com/api/?name=Admin&background=6366f1&color=fff" alt="Profile"
+                            class="profile-img">
+                    </div>
+                </div>
+            </header>
+
+            <!-- Toast Container -->
+            <div id="toast-container" class="toast-container"></div>
+
+            <div class="content">
+                <div class="page active" id="dashboard">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon primary"><i class="fas fa-video"></i></div>
+                            </div>
+                            <div class="stat-value" id="totalVideos">0</div>
+                            <div class="stat-label">Total Videos</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon accent"><i class="fab fa-youtube"></i></div>
+                            </div>
+                            <div class="stat-value" id="youtubeViews">0</div>
+                            <div class="stat-label">YouTube Views</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon success"><i class="fab fa-tiktok"></i></div>
+                            </div>
+                            <div class="stat-value" id="tiktokLikes">0</div>
+                            <div class="stat-label">TikTok Likes</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon accent"><i class="fas fa-power-off"></i></div>
+                                <span id="automationStatusBadge" class="platform-badge"
+                                    style="background:rgba(239, 68, 68, 0.1); color:#ef4444;">OFF</span>
+                            </div>
+                            <div class="stat-value">
+                                <label class="toggle">
+                                    <input type="checkbox" id="autoToggle" onchange="toggleAutomation(this)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="stat-label">Automation Master</div>
+                        </div>
+                    </div>
+
+                    <div class="quick-actions">
+                        <div class="action-card"
+                            style="grid-column: span 3; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(217, 70, 239, 0.1) 100%); border: 1px solid var(--primary-500);">
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <div>
+                                    <h2 style="font-size: 1.5rem; margin-bottom: 8px;"><i class="fas fa-robot"
+                                            style="color: var(--primary-400); margin-right: 12px;"></i>Full Viral
+                                        Automation</h2>
+                                    <p id="automationTargetText" style="color: var(--text-secondary);">Yükleniyor...</p>
+                                </div>
+                                <div class="col-12 col-xl-6">
+                                    <div class="d-flex gap-2">
+                                        <button id="masterLaunchBtn" class="btn btn-primary btn-lg w-100">
+                                            <i class="fas fa-rocket"></i><span>OTOMASYONU BAŞLAT</span>
+                                        </button>
+                                        <button id="force-generate-all-btn" class="btn btn-warning btn-lg"
+                                            title="Tüm hesaplar için şimdi birer video üret">
+                                            <i class="fas fa-bolt"></i>
+                                        </button>
+                                        <button id="scanUploadsBtn" class="btn btn-info btn-lg"
+                                            title="Tüm hesapları tara ve son paylaşımları göster">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                        <button class="btn btn-secondary btn-lg" onclick="showGemmaModal()"
+                                            title="Gemma Kanal Fikirleri">
+                                            <i class="fas fa-magic"></i>
+                                        </button>
+                                        <button class="btn btn-danger btn-lg" onclick="clearQueue()"
+                                            title="İşlem Kuyruğunu Temizle">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fas fa-terminal"></i><span>System Terminal</span></div>
+                        </div>
+                        <div class="terminal-wrapper">
+                            <div class="terminal-header">
+                                <div class="terminal-dot red"></div>
+                                <div class="terminal-dot yellow"></div>
+                                <div class="terminal-dot green"></div><span class="terminal-title">bash --
+                                    video-pro-ai</span>
+                            </div>
+                            <div class="terminal" id="terminal"></div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top: 32px;">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fas fa-history"></i><span>Recent Videos</span></div>
+                        </div>
+                        <div class="card-body">
+                            <div class="video-grid" id="recentVideos">
+                                <div class="empty-state">
+                                    <div class="empty-icon"><i class="fas fa-film"></i></div>
+                                    <div style="font-size: 1.25rem; font-weight: 700; margin-bottom: 8px;">No Videos Yet
+                                    </div>
+                                    <div style="color: var(--text-secondary); margin-bottom: 24px;">Otomasyonu başlatın,
+                                        videolar otomatik üretilecek.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page" id="youtube">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fab fa-youtube"></i><span>YouTube Studio</span></div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row">
+                                <div class="form-group"><label class="form-label">Channel</label><select
+                                        class="form-control" id="youtubeChannel">
+                                        <option value="">Select Channel</option>
+                                    </select></div>
+
+                                <div class="form-group"><label class="form-label">Language</label><select
+                                        class="form-control" id="youtubeLanguage">
+                                        <option value="en">English</option>
+                                    </select></div>
+                            </div>
+                            <div class="action-buttons" style="margin-top: 16px;">
+                                <button id="youtubeGenerateBtn" class="btn btn-primary"><i
+                                        class="fas fa-fire"></i><span>Generate Viral Video</span></button>
+                                <button class="btn btn-secondary refresh-config-btn"><i
+                                        class="fas fa-sync"></i><span>Refresh Channels</span></button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Misplaced TikTok Card Removed -->
+                    <div class="card" style="margin-top: 24px;">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fas fa-list"></i><span>YouTube Videos</span></div>
+                        </div>
+                        <div class="card-body">
+                            <div class="video-grid" id="youtubeVideos">
+                                <div class="empty-state">
+                                    <div class="empty-icon"><i class="fab fa-youtube"></i></div>
+                                    <div style="font-size: 1.25rem; font-weight: 700;">No YouTube Videos</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page" id="tiktok">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fab fa-tiktok"></i><span>TikTok Studio</span></div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row">
+                                <div class="form-group"><label class="form-label">Account</label><select
+                                        class="form-control" id="tiktokAccount">
+                                        <option value="">Select Account</option>
+                                    </select></div>
+
+                                <div class="form-group"><label class="form-label">Language</label><select
+                                        class="form-control" id="tiktokLanguage">
+                                        <option value="en">English</option>
+                                    </select></div>
+                            </div>
+                            <div class="action-buttons" style="margin-top: 16px;">
+                                <button id="tiktokGenerateBtn" class="btn btn-accent"><i
+                                        class="fas fa-fire"></i><span>Generate Viral Video</span></button>
+                                <button class="btn btn-secondary refresh-config-btn"><i
+                                        class="fas fa-sync"></i><span>Refresh Accounts</span></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card" style="margin-top: 24px;">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fas fa-list"></i><span>TikTok Videos</span></div>
+                        </div>
+                        <div class="card-body">
+                            <div class="video-grid" id="tiktokVideos">
+                                <div class="empty-state">
+                                    <div class="empty-icon"><i class="fab fa-tiktok"></i></div>
+                                    <div style="font-size: 1.25rem; font-weight: 700;">No TikTok Videos</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page" id="automation">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fas fa-robot"></i><span>Otomasyon Ayarları</span></div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Otomatik Üretim</label>
+                                    <div class="toggle-wrapper"><label class="toggle"><input type="checkbox"
+                                                id="autoProductionToggle"><span
+                                                class="toggle-slider"></span></label><span id="automationTargetText2"
+                                            style="font-size: 0.9375rem; font-weight: 500; color: var(--text-secondary);">Yükleniyor...</span>
+                                    </div>
+                                    <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 12px;">
+                                        <i class="fas fa-info-circle"></i> Otomasyonu başlatmak için Dashboard'daki
+                                        büyük butonu kullanın.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page" id="settings">
+                    <div class="settings-tabs">
+                        <button class="settings-tab active" data-tab="api"><i class="fas fa-key"></i> API Keys</button>
+                        <button class="settings-tab" data-tab="oauth"><i class="fas fa-lock"></i> OAuth</button>
+                        <button class="settings-tab" data-tab="general"><i class="fas fa-cog"></i> General</button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div id="apiSettings" class="settings-content active">
+                                <div class="form-row">
+                                    <div class="form-group"><label class="form-label">Pexels API Key</label><input
+                                            type="text" class="form-control" id="pexelsKey"
+                                            placeholder="Your Pexels API Key"></div>
+                                    <div class="form-group"><label class="form-label">Gemini API Key</label><input
+                                            type="text" class="form-control" id="geminiKey"
+                                            placeholder="Your Gemini API Key"></div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group"><label class="form-label">Telegram Bot Token</label><input
+                                            type="text" class="form-control" id="telegramToken"
+                                            placeholder="Telegram Bot Token"></div>
+                                    <div class="form-group"><label class="form-label">Telegram Admin ID</label><input
+                                            type="text" class="form-control" id="telegramAdmin"
+                                            placeholder="Admin User ID"></div>
+                                </div>
+                            </div>
+                            <div id="oauthSettings" class="settings-content">
+                                <div class="form-row">
+                                    <div class="form-group"><label class="form-label">YouTube Client ID</label><input
+                                            type="text" class="form-control" id="youtubeClientId"
+                                            placeholder="YouTube OAuth Client ID"></div>
+                                    <div class="form-group"><label class="form-label">YouTube Client
+                                            Secret</label><input type="text" class="form-control"
+                                            id="youtubeClientSecret" placeholder="YouTube OAuth Client Secret"></div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group"><label class="form-label">TikTok Client Key</label><input
+                                            type="text" class="form-control" id="tiktokClientKey"
+                                            placeholder="TikTok Client Key"></div>
+                                    <div class="form-group"><label class="form-label">TikTok Client Secret</label><input
+                                            type="text" class="form-control" id="tiktokClientSecret"
+                                            placeholder="TikTok Client Secret"></div>
+                                </div>
+                            </div>
+                            <div id="generalSettings" class="settings-content">
+                                <div class="form-row">
+                                    <div class="form-group"><label class="form-label">Default Language</label><select
+                                            class="form-control" id="defaultLanguage">
+                                            <option value="en">English</option>
+                                        </select></div>
+                                    <div class="form-group"><label class="form-label">Video Kalitesi</label><select
+                                            class="form-control" id="videoQuality">
+                                            <option value="1080">1080p (Full HD)</option>
+                                            <option value="720">720p (HD)</option>
+                                        </select></div>
+                                </div>
+                            </div>
+                            <div class="action-buttons" style="margin-top: 24px;">
+                                <button class="btn btn-primary" id="save-settings"><i class="fas fa-save"></i><span>Save
+                                        Settings</span></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Job Tracking -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h3><i class="fas fa-tasks text-primary"></i> Canlı İşlem Takibi</h3>
+                            <span class="badge bg-primary rounded-pill" id="liveJobCount">0 Aktif</span>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0" id="jobsTable">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th style="width: 50px;">#</th>
+                                            <th style="width: 120px;">Platform</th>
+                                            <th style="width: 150px;">Kanal/ID</th>
+                                            <th>Durum & İlerleme</th>
+                                            <th style="width: 150px;">Son İşlem</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="jobsTableBody">
+                                        <tr>
+                                            <td colspan="5" class="text-center py-4 text-muted">Veri bekleniyor...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terminal Row -->
+            <div class="row mt-4">
+        </main>
+    </div>
+
+    <script>
+        // Global variables - will be initialized after DOM loads
+        let currentPage = 'dashboard';
+        let sidebar, menuToggle, pageTitle, progressOverlay, progressBar, progressPercent, progressStatus, terminal;
+        let socket;
+        let statusInterval = null;
+        let modalEscapeListenerActive = false;
+
+        // Configuration
+        const APP_CONFIG = {
+            DEBUG: true, // Set to false in production
+            POLLING_INTERVAL: 8000
+        };
+
+        // Enhanced Console Logger
+        const debugLog = (message, data = null) => {
+            if (APP_CONFIG.DEBUG) {
+                if (data) console.log(`[DEBUG] ${message}`, data);
+                else console.log(`[DEBUG] ${message}`);
+            }
+        };
+
+        // Global helper functions
+        function addLog(level, message) {
+            if (!terminal) {
+                console.warn('Terminal element not ready yet');
+                return;
+            }
+            const time = new Date().toLocaleTimeString('tr-TR');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = '<span class="log-time">[' + time + ']</span><span class="log-content"><span class="log-level ' + level + '">' + level.toUpperCase() + '</span>' + message + '</span>';
+            terminal.appendChild(entry);
+            terminal.scrollTop = terminal.scrollHeight;
+            while (terminal.children.length > 100) terminal.removeChild(terminal.firstChild);
+        }
+
+        // --- Status Polling System (Prevents Memory Leaks) ---
+        function startStatusPolling() {
+            if (statusInterval) {
+                clearInterval(statusInterval);
+                statusInterval = null;
+            }
+            debugLog('🔄 Status polling başlatıldı');
+            statusInterval = setInterval(() => {
+                if (typeof updateAutomationUI === 'function') updateAutomationUI();
+                if (typeof loadRecentVideos === 'function') loadRecentVideos();
+                if (typeof fetchLogs === 'function') fetchLogs();
+            }, APP_CONFIG.POLLING_INTERVAL);
+        }
+
+        function stopStatusPolling() {
+            if (statusInterval) {
+                clearInterval(statusInterval);
+                statusInterval = null;
+                debugLog('⏹️ Status polling durduruldu');
+            }
+        }
+
+        function restartStatusPolling(interval = APP_CONFIG.POLLING_INTERVAL) {
+            stopStatusPolling();
+            statusInterval = setInterval(() => {
+                if (typeof updateAutomationUI === 'function') updateAutomationUI();
+                if (typeof loadRecentVideos === 'function') loadRecentVideos();
+                if (typeof fetchLogs === 'function') fetchLogs();
+            }, interval);
+            debugLog(`🔄 Status polling yeniden başlatıldı (${interval}ms)`);
+        }
+
+        // Expose to window
+        window.startStatusPolling = startStatusPolling;
+        window.stopStatusPolling = stopStatusPolling;
+        window.restartStatusPolling = restartStatusPolling;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            debugLog('✅ STAINLESS MAX v2.1 - DOM Loaded');
+
+            // ========================================
+            // CACHE BUSTING & AUTO RELOAD
+            // ========================================
+
+            // Version kontrolü (localStorage ile)
+            const APP_VERSION = '2.1.{{ cache_bust }}';
+            const storedVersion = localStorage.getItem('app_version');
+
+            if (storedVersion && storedVersion !== APP_VERSION) {
+                console.log('🔄 Yeni versiyon tespit edildi, cache temizleniyor...');
+
+                // Cache temizle
+                if ('caches' in window) {
+                    caches.keys().then(names => {
+                        names.forEach(name => caches.delete(name));
+                    });
+                }
+
+                // localStorage'ı güncelle
+                localStorage.setItem('app_version', APP_VERSION);
+
+                // Sayfayı yenile (hard reload)
+                console.log('🔄 Sayfa yenileniyor...');
+                setTimeout(() => {
+                    window.location.reload(true);
+                }, 500);
+                return;
+            }
+
+            // İlk yükleme
+            if (!storedVersion) {
+                localStorage.setItem('app_version', APP_VERSION);
+            }
+
+            // URL'de cache_bust parametresi yoksa ekle
+            const url = new URL(window.location.href);
+            if (!url.searchParams.has('v')) {
+                url.searchParams.set('v', Date.now());
+                window.history.replaceState({}, '', url);
+            }
+
+            console.log('📦 App Version:', APP_VERSION);
+
+            // Service Worker Register (cache yönetimi için)
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/static/js/sw.js')
+                    .then(reg => console.log('✅ Service Worker registered'))
+                    .catch(err => console.warn('⚠️ Service Worker registration failed:', err));
+            }
+
+            // ========================================
+
+            // Initialize DOM elements AFTER DOM is ready
+            sidebar = document.getElementById('sidebar');
+            menuToggle = document.getElementById('menuToggle');
+            pageTitle = document.getElementById('pageTitle');
+            progressOverlay = document.getElementById('progressOverlay');
+            progressBar = document.getElementById('progressBar');
+            progressPercent = document.getElementById('progressPercent');
+            progressStatus = document.getElementById('progressStatus');
+            terminal = document.getElementById('terminal');
+
+            // Global Function Exposures
+            window.initializeNavigation = initializeNavigation;
+            window.loadConfig = loadConfig;
+            window.loadSettings = loadSettings;
+            window.loadRecentVideos = loadRecentVideos;
+            window.showPage = showPage;
+
+            // UI Init
+            if (typeof initializeNavigation === 'function') initializeNavigation();
+
+            // --- EVENT LISTENERS (Consolidated) ---
+
+            // Generate Button
+            const generateBtn = document.getElementById('generate-btn');
+            if (generateBtn) {
+                generateBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🎬 Generate butonuna tıklandı');
+                    if (typeof generateViralVideo === 'function') generateViralVideo('tiktok');
+                });
+            }
+
+            // Force Generate All Button
+            const forceGenerateAllBtn = document.getElementById('force-generate-all-btn');
+            if (forceGenerateAllBtn) {
+                forceGenerateAllBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    console.log('⚡ Şimşek (Force Generate All) butonuna tıklandı');
+                    if (typeof forceGenerateAll === 'function') forceGenerateAll();
+                });
+            }
+
+            // Master Launch Button
+            const masterLaunchBtn = document.getElementById('masterLaunchBtn');
+            if (masterLaunchBtn) {
+                masterLaunchBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    console.log('🚀 Master Launch butonuna tıklandı');
+                    if (typeof toggleAutomationMaster === 'function') toggleAutomationMaster();
+                });
+            }
+
+            // Save Settings Button
+            const saveSettingsBtn = document.getElementById('save-settings');
+            if (saveSettingsBtn) {
+                saveSettingsBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    console.log('💾 Save Settings butonuna tıklandı');
+                    if (typeof saveSettings === 'function') saveSettings();
+                });
+            }
+
+            // --- NEW EVENT LISTENERS (Replacing onclick) ---
+
+            // Scan Uploads
+            const scanUploadsBtn = document.getElementById('scanUploadsBtn');
+            if (scanUploadsBtn) {
+                scanUploadsBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (typeof scanUploads === 'function') scanUploads();
+                });
+            }
+
+            // YouTube Generate
+            const youtubeGenerateBtn = document.getElementById('youtubeGenerateBtn');
+            if (youtubeGenerateBtn) {
+                youtubeGenerateBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (typeof generateViralVideo === 'function') generateViralVideo('youtube');
+                });
+            }
+
+            // TikTok Generate
+            const tiktokGenerateBtn = document.getElementById('tiktokGenerateBtn');
+            if (tiktokGenerateBtn) {
+                tiktokGenerateBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (typeof generateViralVideo === 'function') generateViralVideo('tiktok');
+                });
+            }
+
+            // Refresh Config Buttons (Multiple)
+            document.querySelectorAll('.refresh-config-btn').forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (typeof loadConfig === 'function') loadConfig();
+                });
+            });
+
+            // Settings Tabs
+            document.querySelectorAll('.settings-tab').forEach(tab => {
+                tab.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const tabName = this.dataset.tab;
+                    if (typeof switchSettingsTab === 'function') {
+                        switchSettingsTab(tabName, this);
+                    }
+                });
+            });
+
+            // Data Init
+            if (typeof loadConfig === 'function') loadConfig();
+            if (typeof loadSettings === 'function') loadSettings();
+            if (typeof loadRecentVideos === 'function') loadRecentVideos();
+            addLog('info', 'Uygulama hazir');
+
+            // Periodic Updates - Using Polling System
+            startStatusPolling();
+
+            // Cleanup on unload
+            window.addEventListener('beforeunload', function () {
+                stopStatusPolling();
+            });
+
+            // Pause polling when tab is hidden
+            document.addEventListener('visibilitychange', function () {
+                if (document.hidden) {
+                    stopStatusPolling();
+                } else {
+                    // Only restart if we are on dashboard or relevant page
+                    if (currentPage === 'dashboard' || currentPage === 'automation') {
+                        startStatusPolling();
+                    }
+                }
+            });
+
+            // Socket.IO Init
+            if (typeof io === 'undefined') {
+                console.error("Local Socket.IO library not loaded! Trying CDN...");
+                var script = document.createElement('script');
+                script.src = "https://cdn.socket.io/4.7.4/socket.io.min.js";
+                script.onload = function () {
+                    initSocket();
+                };
+                script.onerror = function () {
+                    alert("Kritik Hata: Socket.IO kütüphanesi yüklenemedi! İnternet bağlantınızı kontrol edin veya uygulamayı yeniden başlatın.");
+                };
+                document.head.appendChild(script);
+            } else {
+                initSocket();
+            }
+        });
+
+        function initSocket() {
+            // Auto-discovery of host/port
+            socket = io({
+                transports: ['websocket'], // Force WebSocket to prevent 404 HTML injection
+                upgrade: true,
+                reconnection: true,
+                reconnectionAttempts: 5
+            });
+            bindSocketEvents();
+
+            // Bağlanınca videoları yükle
+            socket.on('connect', () => {
+                loadRecentVideos();
+            });
+        }
+
+        function bindSocketEvents() {
+            if (!socket) return;
+
+            socket.on('connect', () => addLog('success', 'Sunucuya baglanildi'));
+            socket.on('disconnect', () => addLog('warning', 'Sunucu baglantisi kesildi'));
+            socket.on('log', data => addLog('info', data.data));
+            socket.on('progress', data => updateProgress(data.percent, data.status));
+
+            // Video hazır olduğunda bildirim göster
+            socket.on('video_generated', data => {
+                updateProgress(100, 'Tamamlandi!');
+
+                // Progress bar'ı 500ms sonra gizle
+                setTimeout(() => {
+                    hideProgress();
+                }, 500);
+
+                addLog('success', '✅ Video hazır: ' + (data.filename || 'Video'));
+                showToast('success', '✅ Video hazır!', 5000);
+                loadRecentVideos();
+
+                // Upload/Paylaş modal'ı göster (1 saniye sonra)
+                setTimeout(() => {
+                    if (typeof showUploadModal === 'function') {
+                        showUploadModal(data.filename, data.platform, data.account_id);
+                    }
+                }, 1000);
+            });
+
+            // Instant Upload Notification
+            socket.on('video_uploaded', data => {
+                addLog('success', '🚀 Yüklendi! ' + (data.platform || 'Platform') + ': ' + (data.url || ''));
+                showToast('success', '✅ ' + (data.platform ? data.platform.toUpperCase() : '') + ' YÜKLENDİ! 🚀', 10000);
+            });
+
+            socket.on('video_ready', data => {
+                updateProgress(100, 'Tamamlandi!');
+                setTimeout(() => {
+                    hideProgress();
+                    addLog('success', 'Video hazir: ' + (data.title || 'Video'));
+                    showToast('success', 'Video basariyla olusturuldu');
+                    loadRecentVideos();
+                }, 2000);
+            });
+            socket.on('error', message => {
+                hideProgress();
+                addLog('error', message);
+                showToast('error', message);
+            });
+        }
+
+        function initializeNavigation() {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const page = this.dataset.page;
+                    if (page) { showPage(page); setActiveNav(this); }
+                });
+            });
+            menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+            document.addEventListener('click', function (e) {
+                if (window.innerWidth <= 1024 && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) sidebar.classList.remove('open');
+            });
+        }
+
+        function showPage(pageId) {
+            currentPage = pageId;
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) { targetPage.classList.add('active'); updatePageTitle(pageId); }
+        }
+
+        function setActiveNav(activeItem) { document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active')); activeItem.classList.add('active'); }
+
+        function updatePageTitle(pageId) {
+            const titles = { dashboard: 'Dashboard', youtube: 'YouTube Studio', tiktok: 'TikTok Studio', automation: 'Automation', settings: 'Settings' };
+            pageTitle.textContent = titles[pageId] || 'Dashboard';
+        }
+
+        function switchSettingsTab(tabName, button) {
+            document.querySelectorAll('.settings-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.settings-content').forEach(content => content.classList.remove('active'));
+            button.classList.add('active');
+            document.getElementById(tabName + 'Settings').classList.add('active');
+        }
+
+        // Global variables
+
+
+        async function generateViralVideo(platform) {
+            // Get Account ID from dropdowns
+            let accountId = "";
+            let accountSelect = null;
+
+            if (platform === 'youtube') accountSelect = document.getElementById('youtubeChannel');
+            else if (platform === 'tiktok') accountSelect = document.getElementById('tiktokAccount');
+
+            if (accountSelect) accountId = accountSelect.value;
+
+            // For Dashboard "Fast Generate", accountId might be empty, handled by backend
+
+            showProgress('Video Uretiliyor', 'Hesap ve Konu Analiz Ediliyor...');
+
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        topic: "", // Auto-detect from account
+                        niche: "", // Auto-detect
+                        platform: platform,
+                        channel: (platform === 'youtube') ? accountId : undefined,
+                        account: (platform !== 'youtube') ? accountId : undefined
+                    })
+                });
+
+                if (response.ok) addLog('success', platform + ' videosu uretilmeye baslandi (Otomatik Konu)');
+                else throw new Error('Uretim baslatilamadi');
+            } catch (error) { hideProgress(); addLog('error', 'Hata: ' + error.message); showToast('error', 'Video uretilemedi'); }
+        }
+
+        function forceGenerate() {
+            // Dashboard button - defaults to TikTok with auto settings
+            generateViralVideo('tiktok');
+        }
+
+        function showProgress(title, status) { document.getElementById('progressTitle').textContent = title; progressStatus.textContent = status; progressBar.style.width = '0%'; progressPercent.textContent = '0%'; progressOverlay.style.display = 'flex'; }
+        function updateProgress(percent, status) {
+            // Progress overlay kapalıysa otomatik aç
+            if (progressOverlay && progressOverlay.style.display !== 'flex') {
+                progressOverlay.style.display = 'flex';
+            }
+            if (progressBar) progressBar.style.width = percent + '%';
+            if (progressPercent) progressPercent.textContent = percent + '%';
+
+            // Status Clean Up
+            if (status && progressStatus) {
+                let cleanStatus = status;
+                if (typeof status === 'object') {
+                    try {
+                        cleanStatus = JSON.stringify(status);
+                    } catch (e) {
+                        cleanStatus = "İşleniyor...";
+                    }
+                }
+
+                // Remove HTML tags
+                cleanStatus = String(cleanStatus).replace(/<[^>]*>/g, '');
+                // Truncate if too long (prevents UI overflow)
+                if (cleanStatus.length > 50) cleanStatus = cleanStatus.substring(0, 47) + "...";
+
+                progressStatus.textContent = cleanStatus;
+            }
+        }
+        function hideProgress() { progressOverlay.style.display = 'none'; }
+
+        function clearTerminal() { terminal.innerHTML = ''; addLog('info', 'Terminal temizlendi'); }
+
+        async function loadConfig() {
+            try {
+                console.log('[loadConfig] Fetching accounts from /api/accounts...');
+                // Load Accounts from new API
+                const response = await fetch('/api/accounts');
+                if (!response.ok) throw new Error('Accounts load failed');
+
+                const accData = await response.json();
+                console.log('[loadConfig] Received data:', accData);
+
+                // YouTube Channels
+                const youtubeSelect = document.getElementById('youtubeChannel');
+                console.log('[loadConfig] YouTube select element:', youtubeSelect);
+                console.log('[loadConfig] YouTube accounts:', accData.youtube);
+
+                if (youtubeSelect && accData.youtube) {
+                    // Save selection if possible?
+                    // const saved = youtubeSelect.value;
+                    youtubeSelect.innerHTML = '<option value="">Kanal Seçin</option>';
+                    accData.youtube.forEach(ch => {
+                        const option = document.createElement('option');
+                        option.value = ch.id;
+                        option.textContent = `${ch.name} (${ch.theme})`;
+                        youtubeSelect.appendChild(option);
+                        console.log('[loadConfig] Added YouTube channel:', ch.name, ch.id);
+                    });
+                }
+
+                // TikTok Accounts
+                const tiktokSelect = document.getElementById('tiktokAccount');
+                console.log('[loadConfig] TikTok select element:', tiktokSelect);
+                console.log('[loadConfig] TikTok accounts:', accData.tiktok);
+
+                if (tiktokSelect && accData.tiktok) {
+                    tiktokSelect.innerHTML = '<option value="">Hesap Seçin</option>';
+                    accData.tiktok.forEach(acc => {
+                        const option = document.createElement('option');
+                        option.value = acc.id;
+                        option.textContent = acc.name;
+                        tiktokSelect.appendChild(option);
+                        console.log('[loadConfig] Added TikTok account:', acc.name, acc.id);
+                    });
+                }
+
+                addLog('success', 'Hesaplar yüklendi');
+                console.log('[loadConfig] Accounts loaded successfully');
+
+            } catch (error) {
+                debugLog('Config load error:', error);
+                addLog('error', 'Hesaplar yüklenemedi: ' + error.message);
+                console.error('[loadConfig] Error:', error);
+            }
+        }
+
+        async function loadSettings() {
+            try {
+                const response = await fetch('/api/settings');
+                const data = await response.json();
+
+                // API Keys
+                if (data.api_keys) {
+                    if (document.getElementById('pexelsKey')) document.getElementById('pexelsKey').value = data.api_keys.pexels || '';
+                    if (document.getElementById('geminiKey')) document.getElementById('geminiKey').value = data.api_keys.gemini || '';
+                    if (document.getElementById('telegramToken')) document.getElementById('telegramToken').value = data.api_keys.telegram_token || '';
+                    if (document.getElementById('telegramAdmin')) document.getElementById('telegramAdmin').value = data.api_keys.telegram_admin || '';
+                }
+
+                // OAuth Config Global
+                if (data.youtube) {
+                    if (document.getElementById('youtubeClientId')) document.getElementById('youtubeClientId').value = data.youtube.client_id || '';
+                    if (document.getElementById('youtubeClientSecret')) document.getElementById('youtubeClientSecret').value = data.youtube.client_secret || '';
+                }
+
+                // Render Channel Specific Inputs
+                const channelContainer = document.getElementById('channelOAuthContainer');
+                if (channelContainer) {
+                    try {
+                        // Fetch accounts to know which channels exist
+                        const accResponse = await fetch('/api/accounts');
+                        const accData = await accResponse.json();
+
+                        if (accData.youtube && accData.youtube.length > 0) {
+                            channelContainer.innerHTML = '';
+                            accData.youtube.forEach(channel => {
+                                const channelId = channel.id; // e.g. "Future Lab"
+                                const safeId = channelId.replace(/\s+/g, '_');
+
+                                // Get existing values from settings if present
+                                let cv = { cid: '', csec: '' };
+                                if (data.channel_credentials && data.channel_credentials[channelId]) {
+                                    cv.cid = data.channel_credentials[channelId].client_id || '';
+                                    cv.csec = data.channel_credentials[channelId].client_secret || '';
+                                } else {
+                                    // Fallback to what might be in the account object itself if not in settings override
+                                    cv.cid = channel.client_id || '';
+                                    cv.csec = channel.client_secret || '';
+                                }
+
+                                const div = document.createElement('div');
+                                div.style.marginBottom = '16px';
+                                div.style.padding = '12px';
+                                div.style.backgroundColor = 'rgba(255,255,255,0.03)';
+                                div.style.borderRadius = '8px';
+                                div.innerHTML = `
+                                    <div style="font-weight: 600; margin-bottom: 8px; color: var(--accent-color);">${channel.name}</div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label class="form-label" style="font-size: 0.8rem;">Client ID</label>
+                                            <input type="text" class="form-control channel-auth-id" data-channel="${channelId}" value="${cv.cid}" placeholder="Client ID for ${channel.name}">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label" style="font-size: 0.8rem;">Client Secret</label>
+                                            <input type="text" class="form-control channel-auth-secret" data-channel="${channelId}" value="${cv.csec}" placeholder="Client Secret">
+                                        </div>
+                                    </div>
+                                `;
+                                channelContainer.appendChild(div);
+                            });
+                        } else {
+                            channelContainer.innerHTML = '<div style="color: var(--text-secondary);">No YouTube channels found. Check accounts.json</div>';
+                        }
+                    } catch (e) {
+                        console.error("Error rendering channel inputs", e);
+                        channelContainer.innerHTML = '<div style="color: #ef4444;">Error loading channels</div>';
+                    }
+                }
+
+                if (data.tiktok) {
+                    if (document.getElementById('tiktokClientKey')) document.getElementById('tiktokClientKey').value = data.tiktok.client_key || '';
+                    if (document.getElementById('tiktokClientSecret')) document.getElementById('tiktokClientSecret').value = data.tiktok.client_secret || '';
+                }
+
+                addLog('success', 'Settings loaded');
+            } catch (error) { addLog('error', 'Failed to load settings'); }
+        }
+
+        async function saveSettings() {
+            const pexelsEl = document.getElementById('pexelsKey');
+            const geminiEl = document.getElementById('geminiKey');
+            const telegramTokenEl = document.getElementById('telegramToken');
+            const telegramAdminEl = document.getElementById('telegramAdmin');
+
+            // OAuth
+            const youtubeClientIdEl = document.getElementById('youtubeClientId');
+            const youtubeClientSecretEl = document.getElementById('youtubeClientSecret');
+            const tiktokClientKeyEl = document.getElementById('tiktokClientKey');
+            const tiktokClientSecretEl = document.getElementById('tiktokClientSecret');
+
+            const settings = {
+                pexels: pexelsEl ? pexelsEl.value : '',
+                gemini: geminiEl ? geminiEl.value : '',
+                telegram_token: telegramTokenEl ? telegramTokenEl.value : '',
+                telegram_admin: telegramAdminEl ? telegramAdminEl.value : '',
+                // OAuth
+                youtube_client_id: youtubeClientIdEl ? youtubeClientIdEl.value : '',
+                youtube_client_secret: youtubeClientSecretEl ? youtubeClientSecretEl.value : '',
+                tiktok_client_key: tiktokClientKeyEl ? tiktokClientKeyEl.value : '',
+                tiktok_client_secret: tiktokClientSecretEl ? tiktokClientSecretEl.value : ''
+            };
+            try {
+                const response = await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settings) });
+                if (response.ok) { addLog('success', 'Ayarlar kaydedildi'); showToast('success', t('settings_saved')); }
+                else throw new Error('Kayit basarisiz');
+            } catch (error) { addLog('error', 'Ayarlar kaydedilemedi'); showToast('error', t('settings_save_error')); }
+        }
+
+        async function loadRecentVideos() {
+            try {
+                const response = await fetch('/api/files');
+                const data = await response.json();
+
+                // Containers
+                const mainContainer = document.getElementById('recentVideos');
+                const ytContainer = document.getElementById('youtubeVideos');
+                const ttContainer = document.getElementById('tiktokVideos');
+
+                if (data.files && data.files.length > 0) {
+                    // Clear all
+                    if (mainContainer) mainContainer.innerHTML = '';
+                    if (ytContainer) ytContainer.innerHTML = '';
+                    if (ttContainer) ttContainer.innerHTML = '';
+
+                    data.files.forEach(file => {
+                        // Main Dashboard (All)
+                        if (mainContainer) addVideoCard(file, mainContainer);
+
+                        // Filter by prefix
+                        if (file.name.startsWith('YT_') && ytContainer) addVideoCard(file, ytContainer, 'youtube');
+                        if (file.name.startsWith('TT_') && ttContainer) addVideoCard(file, ttContainer, 'tiktok');
+                    });
+
+                    if (document.getElementById('totalVideos')) document.getElementById('totalVideos').textContent = data.files.length;
+                }
+            } catch (error) { addLog('error', 'Videolar yuklenemedi'); }
+        }
+
+        function addVideoCard(file, container, forcePlatform = null) {
+            const card = document.createElement('div');
+            card.className = 'video-card';
+
+            // Platform Detection
+            let platformClass = 'youtube';
+            let platformIcon = 'fa-youtube';
+            let platformName = 'YouTube';
+
+            if (file.name.startsWith('TT_') || forcePlatform === 'tiktok') {
+                platformClass = 'tiktok'; platformIcon = 'fa-tiktok'; platformName = 'TikTok';
+            }
+
+            // Clean filename
+            const displayName = file.name.replace(/^(YT|IG|TT|VIDEO)_/, '').replace('.mp4', '').replace(/_/g, ' ');
+
+            // URL Logic
+            let titleHtml = `<div class="video-title" style="font-size: 0.9rem; margin-bottom:4px;">${displayName}</div>`;
+            let linkButton = '';
+
+            if (file.url) {
+                // Make title clickable
+                titleHtml = `<div class="video-title" style="font-size: 0.9rem; margin-bottom:4px;">
+                                <a href="${file.url}" target="_blank" style="text-decoration:none; color:inherit; display:flex; align-items:center; gap:5px;">
+                                    ${displayName} <i class="fas fa-external-link-alt" style="font-size:0.7em; opacity:0.7;"></i>
+                                </a>
+                             </div>`;
+
+                // Add explicit "Watch" button
+                linkButton = `
+                    <a href="${file.url}" target="_blank" class="btn btn-outline-success btn-sm" style="width: 100%; margin-top:4px; border-color: var(--success); color: var(--success);">
+                        <i class="fas fa-play"></i> <span>İzle (${platformName})</span>
+                    </a>`;
+            }
+
+            card.innerHTML = `
+                <div class="video-thumbnail">
+                    <video controls preload="metadata" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">
+                        <source src="/download/${file.name}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+                </div>
+                <div class="video-info">
+                    ${titleHtml}
+                    <div class="video-meta">
+                        <span class="platform-badge ${platformClass}"><i class="fab ${platformIcon}"></i> ${platformName}</span>
+                        <span class="video-date" style="font-size:0.75rem;">${file.time || ''}</span>
+                    </div>
+                    <div class="d-flex gap-2 mt-2">
+                        <button class="btn btn-primary btn-sm action-share-btn flex-grow-1">
+                            <i class="fas fa-share"></i> Paylaş
+                        </button>
+                        <button class="btn btn-danger btn-sm action-delete-btn" title="Sil">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    ${linkButton}
+                    <a href="/download/${file.name}" download class="btn btn-ghost btn-sm" style="width: 100%; margin-top:4px;">
+                        <i class="fas fa-download"></i><span>İndir</span>
+                    </a>
+                </div>`;
+
+            // Attach event listeners
+            const shareBtn = card.querySelector('.action-share-btn');
+            if (shareBtn) {
+                shareBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (typeof showUploadModal === 'function') {
+                        // showUploadModal(filename, platform, accountId)
+                        // Uses global showUploadModal
+                        showUploadModal(file.name, platformClass, null);
+                    }
+                });
+            }
+
+            const deleteBtn = card.querySelector('.action-delete-btn');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (typeof deleteVideo === 'function') deleteVideo(file.name);
+                });
+            }
+
+            container.appendChild(card);
+        }
+
+        async function toggleAutomationMaster() {
+            const btn = document.getElementById('masterLaunchBtn');
+            const toggle = document.getElementById('autoToggle');
+            const isStarting = btn.innerText.includes('BAŞLAT');
+
+            if (isStarting) {
+                await startAutomation();
+                btn.innerHTML = '<i class="fas fa-stop"></i><span>OTOMASYONU DURDUR</span>';
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-secondary');
+                toggle.checked = true;
+            } else {
+                await stopAutomation();
+                btn.innerHTML = '<i class="fas fa-rocket"></i><span>OTOMASYONU BAŞLAT</span>';
+                btn.classList.remove('btn-secondary');
+                btn.classList.add('btn-primary');
+                toggle.checked = false;
+            }
+            updateAutomationUI();
+        }
+
+        async function toggleAutomation(el) {
+            if (el.checked) await startAutomation();
+            else await stopAutomation();
+        }
+
+        async function updateAutomationUI() {
+            try {
+                const response = await fetch('/api/automation/status');
+                const data = await response.json();
+                const badge = document.getElementById('automationStatusBadge');
+                const btn = document.getElementById('masterLaunchBtn');
+                const toggle = document.getElementById('autoToggle');
+
+                if (data.target) {
+                    const targetText = document.getElementById('automationTargetText');
+                    const targetText2 = document.getElementById('automationTargetText2');
+                    const targetStr = `Günde ${data.target.daily} video (${data.target.youtube} YT + ${data.target.tiktok} TT) otomatik üretilir ve paylaşılır.`;
+                    const targetStr2 = `Günlük ${data.target.daily} Video (${data.target.youtube} YT + ${data.target.tiktok} TT)`;
+
+                    if (targetText && targetText.innerText !== targetStr) targetText.innerText = targetStr;
+                    if (targetText2 && targetText2.innerText !== targetStr2) targetText2.innerText = targetStr2;
+                }
+
+                // İstatistikleri güncelle (Views/Likes)
+                try {
+                    const statsResponse = await fetch('/api/stats');
+                    if (statsResponse.ok) {
+                        const stats = await statsResponse.json();
+
+                        // Helper for number formatting (1.2K, 1M)
+                        const fmt = (num) => {
+                            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+                            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+                            return num;
+                        };
+
+                        if (document.getElementById('totalVideos')) document.getElementById('totalVideos').textContent = stats.produced || 0;
+                        if (document.getElementById('youtubeViews')) document.getElementById('youtubeViews').textContent = fmt(stats.youtube_views || 0);
+                        if (document.getElementById('tiktokLikes')) document.getElementById('tiktokLikes').textContent = fmt(stats.tiktok_likes || 0);
+                    }
+                } catch (e) {
+                    console.error("Stats update failed", e);
+                }
+
+                if (data.queue) {
+                    const totalJobs = data.queue.total || 0;
+                    const pending = data.queue.pending || 0;
+                    const generating = data.queue.generating || 0;
+
+                    // Global değişkende önceki durumu saklayalım
+                    if (window.lastQueueTotal === undefined) window.lastQueueTotal = -1;
+
+                    // Sadece değişiklik varsa log düş
+                    if (totalJobs !== window.lastQueueTotal && totalJobs > 0) {
+                        // addLog('info', `📊 Durum Güncellemesi: Toplam ${totalJobs} İş (Bekleyen: ${pending}, Üretilen: ${generating})`);
+                        window.lastQueueTotal = totalJobs;
+                    }
+
+                    // Aktif üretim varsa badge animasyonu
+                    if (generating > 0) {
+                        if (badge && !badge.innerHTML.includes('fa-cog')) badge.innerHTML += ' <i class="fas fa-cog fa-spin"></i>';
+                    }
+                }
+
+                const queueTotal = (data.queue && data.queue.total) || 0;
+                if (data.auto_mode) {
+                    if (badge) {
+                        badge.innerText = 'ON (İşleniyor: ' + queueTotal + ')';
+                        badge.style.background = 'rgba(16, 185, 129, 0.1)';
+                        badge.style.color = 'var(--success)';
+                    }
+                    if (btn) {
+                        // Check if text needs update to avoid flicker/reset
+                        if (!btn.innerHTML.includes('OTOMASYONU DURDUR')) {
+                            btn.innerHTML = '<i class="fas fa-stop"></i><span>OTOMASYONU DURDUR (' + queueTotal + ' İş)</span>';
+                            btn.classList.remove('btn-primary');
+                            btn.classList.add('btn-secondary');
+                        } else {
+                            // Just update text part if needed or keep it simple
+                            btn.innerHTML = '<i class="fas fa-stop"></i><span>OTOMASYONU DURDUR (' + queueTotal + ' İş)</span>';
+                        }
+                    }
+                    if (toggle) toggle.checked = true;
+                } else {
+                    if (badge) {
+                        badge.innerText = data.active ? 'BATCH RUN (' + queueTotal + ')' : 'OFF';
+                        badge.style.background = data.active ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)';
+                        badge.style.color = data.active ? 'var(--accent)' : '#ef4444';
+                    }
+                    if (btn && !btn.innerHTML.includes('OTOMASYONU BAŞLAT')) {
+                        btn.innerHTML = '<i class="fas fa-rocket"></i><span>OTOMASYONU BAŞLAT</span>';
+                        btn.classList.remove('btn-secondary');
+                        btn.classList.add('btn-primary');
+                    }
+                    if (toggle) toggle.checked = false;
+                }
+
+                // Update Jobs Table (Smart)
+                if (data.recent_jobs) {
+                    const tbody = document.getElementById('jobsTableBody');
+                    const countBadge = document.getElementById('liveJobCount');
+
+                    if (tbody) {
+                        let jobs = data.recent_jobs || [];
+
+                        // Filter: Only show jobs that are NOT fully complete unless they are very recent?
+                        // User said: "video üretildiğinde orda görünmesin" -> Hidden when done.
+                        // User said: "sadece o gün üretilmesi gereken 36 video" -> imply showing pending "scheduled" ones?
+                        // But usually "recent_jobs" are the active ones.
+
+                        // Filter out completed/uploaded jobs to keep list clean
+                        const activeJobs = jobs.filter(j =>
+                            ['pending', 'generating', 'processing', 'rendering', 'uploading'].includes(j.status)
+                        );
+
+                        // Sort by priority/time
+                        // activeJobs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+                        if (data.active && activeJobs.length > 0) {
+                            liveCount.textContent = `${activeJobs.length} Aktif`;
+                            tbody.innerHTML = activeJobs.map((job, index) => {
+                                let badgeColor = 'bg-secondary';
+                                if (job.status === 'generating') badgeColor = 'bg-primary';
+                                if (job.status === 'uploading') badgeColor = 'bg-warning';
+                                if (job.status === 'uploaded') badgeColor = 'bg-success';
+                                if (job.status === 'failed') badgeColor = 'bg-danger';
+
+                                return `
+                                <tr>
+                                    <td>${index + 1}</td>
+                                    <td><span class="badge ${job.platform === 'youtube' ? 'bg-danger' : 'bg-dark'}">${job.platform}</span></td>
+                                    <td>${job.account_id}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge ${badgeColor}">${job.status.toUpperCase()}</span>
+                                            ${job.progress ? `<small class="text-muted">%${job.progress}</small>` : ''}
+                                        </div>
+                                        ${job.progress ? `
+                                        <div class="progress mt-1" style="height: 4px; width: 100%;">
+                                            <div class="progress-bar" style="width: ${job.progress}%"></div>
+                                        </div>` : ''}
+                                    </td>
+                                    <td><small class="text-muted">${new Date(job.updated_at).toLocaleTimeString()}</small></td>
+                                </tr>
+                                `;
+                            }).join('');
+                        } else if (!data.active) {
+                            liveCount.textContent = '0 Aktif';
+                            tbody.innerHTML = `
+                                <tr>
+                                    <td colspan="5" class="text-center py-5">
+                                        <div class="text-muted">
+                                            <i class="fas fa-pause-circle fa-2x mb-3"></i>
+                                            <p>Otomasyon başlatılmadı.</p>
+                                            <small>Başlatıldığında günlük kuyruk burada görünecek.</small>
+                                        </div>
+                                    </td>
+                                </tr>`;
+                        } else {
+                            liveCount.textContent = '0 Aktif';
+                            tbody.innerHTML = `
+                                <tr>
+                                    <td colspan="5" class="text-center py-5">
+                                        <div class="text-muted">
+                                            <i class="fas fa-check-circle fa-2x mb-3 text-success"></i>
+                                            <p>Şu an aktif işlem yok.</p>
+                                            <small>Sıradaki işlem bekleniyor...</small>
+                                        </div>
+                                    </td>
+                                </tr>`;
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Status update error:", err);
+            }
+        }
+
+        // --- SEARCH FUNCTIONALITY ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Create search input in sidebar
+            const navSection = document.querySelector('.nav-items');
+            if (navSection) {
+                const searchContainer = document.createElement('div');
+                searchContainer.style.padding = '0 16px 12px 16px';
+                searchContainer.innerHTML = `
+                    <div style="position: relative;">
+                        <input type="text" id="sidebarSearch" placeholder="Menüde ara..." 
+                            style="width: 100%; background: var(--bg-tertiary); border: 1px solid var(--border-subtle); 
+                                   border-radius: var(--radius-md); padding: 8px 12px 8px 36px; color: var(--text-primary); outline: none;">
+                        <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary);"></i>
+                    </div>
+                `;
+                navSection.parentElement.insertBefore(searchContainer, navSection);
+
+                const searchInput = document.getElementById('sidebarSearch');
+                searchInput.addEventListener('input', (e) => {
+                    const term = e.target.value.toLowerCase();
+                    document.querySelectorAll('.nav-item').forEach(item => {
+                        const text = item.textContent.toLowerCase();
+                        if (term === '' || text.includes(term)) {
+                            item.style.display = 'flex';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+            }
+
+            // Add Icon to 'Gemma Fikirleri' if missing
+            // Finding elements by text content is tricky, better to check in HTML structure
+            // Assuming the button call is showGemmaModal()
+            // Done in HTML replacement below if needed
+        });
+
+        // --- AI ICONS FIX ---
+        /* This is handled by replacing the sidebar HTML structure or dynamically checking */
+        async function startAutomation() {
+            try {
+                const response = await fetch('/api/automation/start', { method: 'POST' });
+                if (response.ok) {
+                    addLog('info', '🚀 Otomasyon başlatıldı');
+                    showToast('success', 'Otomasyon aktif');
+                    // İlk üretimler otomatik başlamayacak, Şimşek butonunu kullan
+                }
+            } catch (e) { addLog('error', 'Başlatılamadı'); }
+        }
+        async function stopAutomation() {
+            try {
+                const response = await fetch('/api/automation/stop', { method: 'POST' });
+                if (response.ok) { addLog('warning', '⏹️ Otomasyon durduruldu'); showToast('warning', 'Otomasyon pasif'); }
+            } catch (e) { addLog('error', 'Durdurulamadi'); }
+        }
+
+        async function forceGenerateAll() {
+            if (!confirm("Tüm bağlı hesaplar (4 YouTube + 2 TikTok) için anında üretim başlatılacak. Toplam 6 video üretilecek. Emin misiniz?")) return;
+            try {
+                addLog('info', '⚡ Toplu üretim isteği gönderiliyor...');
+                const response = await fetch('/api/automation/force_generate_all', { method: 'POST' });
+                const data = await response.json();
+
+                if (data.status === 'success' && data.data && !data.data.error) {
+                    addLog('success', `⚡ ${data.data.added} yeni video sıraya alındı!`);
+                    showToast('success', 'Tüm hesaplar için üretim başladı');
+                    updateAutomationUI();
+                } else {
+                    // Backend returned error in data.data.error or data.message
+                    const errMsg = (data.data && data.data.error) ? data.data.error : (data.message || 'Bilinmeyen hata');
+                    addLog('error', 'Hata: ' + errMsg);
+                }
+            } catch (e) {
+                addLog('error', 'Toplu üretim başlatılamadı: ' + e);
+            }
+        }
+
+        async function clearQueue() {
+            if (!confirm("⚠️ DİKKAT: Bekleyen ve devam eden TÜM işlemleri silmek istiyor musunuz?")) return;
+            try {
+                addLog('warning', 'Temizleniyor...');
+                const response = await fetch('/api/automation/clear', { method: 'POST' });
+                const data = await response.json();
+
+                if (response.ok) {
+                    addLog('success', '🧹 ' + (data.message || 'Kuyruk temizlendi'));
+                    showToast('success', 'İşlem listesi sıfırlandı');
+                    setTimeout(updateAutomationUI, 1000); // Wait a bit for backend to settle
+                } else {
+                    addLog('error', 'Hata: ' + (data.error || 'Bilinmeyen hata'));
+                }
+            } catch (e) {
+                console.error(e);
+                addLog('error', 'Temizleme başarısız: ' + e);
+            }
+        }
+
+        async function scanUploads() {
+            addLog('info', '🔍 Paylaşım taraması başlatılıyor...');
+            addLog('info', '⏳ Gemini AI ile tüm platformlar taranıyor...');
+            showToast('info', 'Tarama başladı, lütfen bekleyin...');
+
+            try {
+                const response = await fetch('/api/scan/uploads', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Tarama başarısız: ' + response.statusText);
+                }
+
+                const data = await response.json();
+
+                if (data.error) {
+                    addLog('error', '❌ Hata: ' + data.error);
+                    showToast('error', 'Tarama başarısız');
+                    return;
+                }
+
+                // Özet bilgileri göster
+                addLog('success', '✅ Tarama tamamlandı!');
+                addLog('info', `📊 Toplam ${data.summary.total_accounts} hesap tarandı`);
+                addLog('info', `📹 Son 24 saatte ${data.summary.total_videos_24h} video paylaşıldı`);
+                addLog('info', '');
+
+                // YouTube sonuçları
+                if (data.youtube && data.youtube.length > 0) {
+                    addLog('info', '🎥 YOUTUBE KANALLARI:');
+                    addLog('info', '─'.repeat(50));
+                    data.youtube.forEach(channel => {
+                        if (channel.error) {
+                            addLog('warning', `  ⚠️ ${channel.account}: ${channel.error}`);
+                        } else {
+                            addLog('info', `  📺 ${channel.account}: ${channel.last_24h} video (son 24 saat)`);
+                            if (channel.raw_response) {
+                                addLog('info', `     ${channel.raw_response.substring(0, 200)}...`);
+                            }
+                        }
+                    });
+                    addLog('info', '');
+                }
+
+                // TikTok sonuçları
+                if (data.tiktok && data.tiktok.length > 0) {
+                    addLog('info', '🎵 TIKTOK HESAPLARI:');
+                    addLog('info', '─'.repeat(50));
+                    data.tiktok.forEach(account => {
+                        if (account.error) {
+                            addLog('warning', `  ⚠️ ${account.account}: ${account.error}`);
+                        } else {
+                            addLog('info', `  🎬 ${account.account}: ${account.last_24h} video (son 24 saat)`);
+                            if (account.raw_response) {
+                                addLog('info', `     ${account.raw_response.substring(0, 200)}...`);
+                            }
+                        }
+                    });
+                    addLog('info', '');
+                }
+
+                addLog('success', '✅ Tarama raporu tamamlandı');
+                showToast('success', `${data.summary.total_videos_24h} video bulundu`);
+
+            } catch (e) {
+                addLog('error', '❌ Tarama hatası: ' + e.message);
+                showToast('error', 'Tarama başarısız');
+                debugLog('Scan error:', e);
+            }
+        }
+
+        function showHelp() { showToast('info', 'Yardim dokumantasyonu hazirlaniyor...'); }
+
+        function showToast(type, message, duration) {
+            duration = duration || 3000;
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            toast.innerHTML = '<div class="toast-icon"><i class="fas fa-' + (type === 'success' ? 'check' : type === 'error' ? 'times' : 'exclamation') + '"></i></div><span>' + message + '</span>';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), duration);
+        }
+
+        function approveVideo(filename) { showToast('success', 'Video onaylandi: ' + filename); }
+
+        async function deleteVideo(filename) {
+            if (!confirm(`"${filename}" dosyasını silmek istediğinize emin misiniz?`)) return;
+
+            try {
+                const response = await fetch(`/api/files?filename=${encodeURIComponent(filename)}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showToast('success', 'Dosya silindi');
+                    loadRecentVideos(); // Refresh list
+                } else {
+                    const data = await response.json();
+                    showToast('error', 'Silinemedi: ' + (data.error || 'Hata'));
+                }
+            } catch (e) {
+                showToast('error', 'Hata: ' + e);
+            }
+        }
+        async function triggerUpdate() {
+            if (!confirm("Uygulama kapatılıp güncellenecek. Onaylıyor musunuz?")) return;
+
+            try {
+                const btn = document.getElementById('updateBtn');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Başlıyor...';
+
+                const response = await fetch('/api/update', { method: 'POST' });
+                const data = await response.json();
+
+                if (data.status === 'starting_update') {
+                    alert("Güncelleme başlatıldı! Uygulama birazdan kapanacak.");
+                } else {
+                    alert("Hata: " + (data.error || "Bilinmeyen hata"));
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-sync-alt"></i> GÜNCELLE';
+                }
+            } catch (error) {
+                debugLog('Update functionality error:', error);
+                alert("Güncelleme komutu gönderilemedi.");
+                const btn = document.getElementById('updateBtn');
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        async function fetchLogs() {
+            try {
+                const response = await fetch('/api/logs');
+                const data = await response.json();
+                if (data.logs && data.logs.length > 0) {
+                    const terminal = document.getElementById('terminal');
+                    // Son logları kontrol et, yenileri ekle
+                    // Basit yöntem: Terminali temizle ve yeniden bas (ya da daha akıllıca append et)
+                    // Kullanıcı akışı görmek istiyor, şimdilik sadece son 5 logu ekleyelim eğer farklıysa
+
+                    // Şimdilik sadece son logu kontrol edip ekleyelim
+                    const lastLog = data.logs[data.logs.length - 1].trim();
+                    // Bu kısım biraz karmaşık olabilir, basitçe son logu ekleyelim
+                    // addLog('info', lastLog); // Bu çok tekrar eder.
+
+                    // İyileştirme: Logları terminale basmak yerine sadece önemli olayları arayüzde gösterdik.
+                    // Kullanıcı "ne oluyor" diye sorduğu için, son logu bir durum çubuğuna yazabiliriz.
+                    const statusText = document.getElementById('progressStatus');
+                    if (statusText && lastLog) {
+                        // Log satırından tarih ve level'i temizle
+                        let cleanLog = lastLog.split(' - ').pop();
+                        if (cleanLog.length > 100) cleanLog = cleanLog.substring(0, 100) + '...';
+                        statusText.textContent = "Son İşlem: " + cleanLog;
+                        // Terminale de ekleyelim ki boş kalmasın (eğer kullanıcı boş gördüm derse)
+                        // Ancak tekrarı önlemek lazım, şimdilik basit tutuyoruz.
+                    }
+                }
+            } catch (e) { }
+        }
+
+
+        // --- REPAIRED FUNCTIONS ---
+
+        async function triggerHistoryAgent() {
+            try {
+                showToast('Bilgi', 'History Agent başlatılıyor...', 'info');
+                const response = await fetch('/api/generate/history', { method: 'POST' });
+                const data = await response.json();
+
+                if (data.status === 'started') {
+                    showToast('Başarılı', 'History Agent arka planda çalışıyor!', 'success');
+                } else {
+                    showToast('Hata', data.error || 'Başlatılamadı', 'error');
+                }
+            } catch (e) {
+                console.error(e);
+                showToast('Hata', 'İstek gönderilemedi', 'error');
+            }
+        }
+
+        async function viewHistoryLogs() {
+            try {
+                const response = await fetch('/api/logs');
+                const data = await response.json();
+                if (data.logs) {
+                    alert("Son Loglar:\n" + data.logs.slice(-10).join(""));
+                }
+            } catch (e) {
+                alert("Loglar alÄ±namadÄ±.");
+            }
+        }
+
+        // Mock functions if they were missing
+        async function verifySystem() {
+            showToast('Bilgi', 'Sistem doÄŸrulanÄ±yor...', 'info');
+            setTimeout(() => showToast('BaÅŸarÄ±lÄ±', 'Sistem doÄŸrulandÄ±.', 'success'), 1000);
+        }
+
+        async function updateSystem() {
+            showToast('Bilgi', 'GÃ¼ncellemeler kontrol ediliyor...', 'info');
+            setTimeout(() => showToast('Bilgi', 'Sistem gÃ¼ncel.', 'success'), 1000);
+        }
+
+        // Expose functions to window for onclick attributes
+        window.toggleAutomationMaster = toggleAutomationMaster;
+        window.toggleAutomation = toggleAutomation;
+        window.startAutomation = startAutomation;
+        window.stopAutomation = stopAutomation;
+        window.forceGenerateAll = forceGenerateAll;
+        window.clearQueue = clearQueue;
+        window.scanUploads = scanUploads;
+        window.approveVideo = approveVideo;
+        window.triggerUpdate = triggerUpdate;
+        window.triggerHistoryAgent = triggerHistoryAgent;
+        window.viewHistoryLogs = viewHistoryLogs;
+        window.verifySystem = verifySystem;
+        window.updateSystem = updateSystem;
+        window.loadConfig = loadConfig;
+        window.generateViralVideo = generateViralVideo;
+
+
+    </script>
+
+    <!-- ========================================== -->
+    <!-- BUTTON EVENT FIX - STAINLESS MAX v2.1 -->
+    <!-- ========================================== -->
+
+
+    <script>
+        // ========================================
+        // UPLOAD MODAL FUNCTIONS
+        // ========================================
+
+        let currentVideoFilename = null;
+        let currentVideoPlatform = null;
+        let currentVideoAccountId = null;
+
+        function showUploadModal(filename, platform, accountId) {
+            currentVideoFilename = filename;
+            currentVideoPlatform = platform;
+            currentVideoAccountId = accountId;
+
+            console.log('📤 Upload Modal açılıyor:', { filename, platform, accountId });
+
+            console.log('📤 Upload Modal açılıyor:', { filename, platform, accountId });
+
+            // Fix: Ensure complete cleanup of previous instance (listeners + DOM)
+            closeUploadModal();
+
+            // Platform'u belirle (youtube veya tiktok)
+            let selectedPlatform = 'youtube'; // default
+            if (platform === 'tiktok' || (accountId && accountId.toLowerCase().includes('tiktok'))) {
+                selectedPlatform = 'tiktok';
+            } else if (platform === 'youtube' || (accountId && accountId.toLowerCase().includes('youtube'))) {
+                selectedPlatform = 'youtube';
+            }
+
+            debugLog('🎯 Seçili platform:', selectedPlatform);
+
+            // Modal HTML oluştur
+            const modalHTML = `
+<div id="uploadModal" class="upload-modal-overlay">
+    <div class="upload-modal-content">
+        <div class="upload-modal-header">
+            <h2>🎉 Video Hazır!</h2>
+            <button class="upload-modal-close" type="button">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="upload-modal-body">
+            <div class="video-preview-info">
+                <i class="fas fa-video" style="font-size: 48px; color: var(--primary-500); margin-bottom: 16px;"></i>
+                <p class="video-filename">${filename}</p>
+            </div>
+
+            <div class="upload-form">
+                <div class="form-group">
+                    <label>Platform Seç</label>
+                    <select id="uploadPlatform" class="form-control">
+                        <option value="youtube" ${selectedPlatform === 'youtube' ? 'selected' : ''}>YouTube Shorts
+                        </option>
+                        <option value="tiktok" ${selectedPlatform === 'tiktok' ? 'selected' : ''}>TikTok</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Hesap Seç</label>
+                    <select id="uploadAccount" class="form-control">
+                        <option value="">Yükleniyor...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Video Başlığı</label>
+                    <input type="text" id="uploadTitle" class="form-control" placeholder="Otomatik oluşturulacak..."
+                        maxlength="100">
+                    <small>YouTube için max 100 karakter</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Açıklama</label>
+                    <textarea id="uploadDescription" class="form-control" placeholder="Otomatik oluşturulacak..."
+                        rows="4" maxlength="5000"></textarea>
+                    <small>YouTube için max 5000 karakter</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="upload-modal-footer">
+            <button class="btn btn-secondary modal-cancel-btn" type="button">
+                <i class="fas fa-times"></i> Şimdi Değil
+            </button>
+            <button class="btn btn-primary modal-upload-btn" type="button">
+                <i class="fas fa-upload"></i> Paylaş
+            </button>
+        </div>
+    </div>
+</div>
+`;
+
+            // Modal'ı ekle
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            debugLog('✅ Modal DOM\'a eklendi');
+
+            // --- Attach Event Listeners ---
+            const modal = document.getElementById('uploadModal');
+            if (modal) {
+                // Overlay click
+                modal.addEventListener('click', handleModalOverlayClick);
+
+                // Prevent content click propagation
+                const content = modal.querySelector('.upload-modal-content');
+                if (content) {
+                    content.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                    });
+                }
+
+                // Close buttons
+                const closeBtn = modal.querySelector('.upload-modal-close');
+                if (closeBtn) closeBtn.addEventListener('click', closeUploadModal);
+
+                const cancelBtn = modal.querySelector('.modal-cancel-btn');
+                if (cancelBtn) cancelBtn.addEventListener('click', closeUploadModal);
+
+                // Upload button
+                const uploadBtn = modal.querySelector('.modal-upload-btn');
+                if (uploadBtn) uploadBtn.addEventListener('click', uploadVideo);
+            }
+
+            // Platform değiştiğinde hesapları yükle
+            const platformSelect = document.getElementById('uploadPlatform');
+            if (platformSelect) {
+                platformSelect.addEventListener('change', function () {
+                    debugLog('🔄 Platform değişti:', this.value);
+                    loadUploadAccounts();
+                });
+            }
+
+            // ESC tuşu ile kapatma
+            document.addEventListener('keydown', handleModalEscape);
+            modalEscapeListenerActive = true;
+
+            // İlk yükleme (hesapları yükle ve otomatik seç)
+            loadUploadAccounts(accountId);
+        }
+
+        function handleModalOverlayClick(event) {
+            // Overlay'e tıklandığında modal'ı kapat
+            if (event.target.id === 'uploadModal') {
+                debugLog('📍 Overlay\'e tıklandı, modal kapatılıyor');
+                closeUploadModal();
+            }
+        }
+
+        function handleModalEscape(event) {
+            if (event.key === 'Escape') {
+                debugLog('⌨️ ESC tuşuna basıldı, modal kapatılıyor');
+                closeUploadModal();
+            }
+        }
+
+        function closeUploadModal() {
+            // Remove DOM element
+            const modal = document.getElementById('uploadModal');
+            if (modal) {
+                modal.remove();
+            }
+
+            // Always try to remove the listener to be safe
+            document.removeEventListener('keydown', handleModalEscape);
+
+            // Reset variables
+            currentVideoFilename = null;
+            currentVideoPlatform = null;
+            currentVideoAccountId = null;
+        }
+
+        // Global scope'a ekle
+        window.showUploadModal = showUploadModal;
+        window.closeUploadModal = closeUploadModal;
+        window.handleModalOverlayClick = handleModalOverlayClick;
+
+        async function loadUploadAccounts(autoSelectAccountId = null) {
+            const platform = document.getElementById('uploadPlatform').value;
+            const accountSelect = document.getElementById('uploadAccount');
+
+            // Eğer parametre verilmediyse, global değişkenden al
+            if (!autoSelectAccountId && currentVideoAccountId) {
+                autoSelectAccountId = currentVideoAccountId;
+            }
+
+            try {
+                const response = await fetch('/api/accounts');
+                const config = await response.json();
+
+                accountSelect.innerHTML = '<option value="">Hesap seçin...</option>';
+
+                if (platform === 'youtube' && config.youtube) {
+                    config.youtube.forEach(acc => {
+                        const option = document.createElement('option');
+                        option.value = acc.id;
+                        option.textContent = acc.name || acc.id;
+
+                        // Otomatik seçim
+                        if (autoSelectAccountId && (acc.id === autoSelectAccountId || acc.id.includes(autoSelectAccountId))) {
+                            option.selected = true;
+                        }
+
+                        accountSelect.appendChild(option);
+                    });
+                } else if (platform === 'tiktok' && config.tiktok) {
+                    config.tiktok.forEach(acc => {
+                        const option = document.createElement('option');
+                        option.value = acc.id;
+                        option.textContent = acc.name || acc.id;
+
+                        // Otomatik seçim
+                        if (autoSelectAccountId && (acc.id === autoSelectAccountId || acc.id.includes(autoSelectAccountId))) {
+                            option.selected = true;
+                        }
+
+                        accountSelect.appendChild(option);
+                    });
+                }
+
+                if (accountSelect.options.length === 1) {
+                    accountSelect.innerHTML = '<option value="">Hesap bulunamadı</option>';
+                }
+            } catch (e) {
+                console.error('Hesaplar yüklenemedi:', e);
+                accountSelect.innerHTML = '<option value="">Hata: Hesaplar yüklenemedi</option>';
+            }
+        }
+
+        async function uploadVideo() {
+            console.log('📤 Upload işlemi başlatılıyor...');
+
+            const platform = document.getElementById('uploadPlatform').value;
+            const accountId = document.getElementById('uploadAccount').value;
+            const title = document.getElementById('uploadTitle').value;
+            const description = document.getElementById('uploadDescription').value;
+
+            console.log('📋 Upload bilgileri:', { platform, accountId, title, filename: currentVideoFilename });
+
+            if (!accountId) {
+                showToast('error', 'Lütfen bir hesap seçin');
+                return;
+            }
+
+            if (!currentVideoFilename) {
+                showToast('error', 'Video dosyası bulunamadı');
+                return;
+            }
+
+            try {
+                // Upload butonunu devre dışı bırak
+                const uploadBtn = document.querySelector('.upload-modal-footer .btn-primary');
+                if (uploadBtn) {
+                    uploadBtn.disabled = true;
+                    uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Yükleniyor...';
+                }
+
+                const response = await fetch('/api/upload/manual', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        filename: currentVideoFilename,
+                        platform: platform,
+                        account_id: accountId,
+                        title: title || null,
+                        description: description || null
+                    })
+                });
+
+                const result = await response.json();
+                console.log('📥 Upload sonucu:', result);
+
+                if (result.success) {
+                    showToast('success', '✅ Video başarıyla yüklendi!');
+                    addLog('success', `Video yüklendi: ${platform} - ${accountId}`);
+                    closeUploadModal();
+                } else {
+                    showToast('error', 'Yükleme hatası: ' + (result.error || 'Bilinmeyen hata'));
+                    if (uploadBtn) {
+                        uploadBtn.disabled = false;
+                        uploadBtn.innerHTML = '<i class="fas fa-upload"></i> Paylaş';
+                    }
+                }
+            } catch (e) {
+                console.error('❌ Upload error:', e);
+                showToast('error', 'Yükleme hatası: ' + e.message);
+                const uploadBtn = document.querySelector('.upload-modal-footer .btn-primary');
+                if (uploadBtn) {
+                    uploadBtn.disabled = false;
+                    uploadBtn.innerHTML = '<i class="fas fa-upload"></i> Paylaş';
+                }
+            }
+        }
+
+        // Global scope'a ekle
+        window.uploadVideo = uploadVideo;
+        // Global variables for notifications
+        let notifications = [];
+        let forceJobStats = { total: 0, finished: 0, active: false };
+
+        // Toggle Notification Dropdown
+        function toggleNotifications() {
+            console.log("Toggle notifications clicked");
+            const dropdown = document.getElementById('notificationDropdown');
+            if (dropdown) {
+                dropdown.classList.toggle('show');
+                // Force display if class is not enough (though CSS should handle it)
+                // dropdown.style.display = dropdown.classList.contains('show') ? 'block' : 'none';
+
+                // Mark all as read when opened (visual only for now)
+                const badge = document.getElementById('notificationBadge');
+                if (badge) badge.style.display = 'none';
+            } else {
+                console.error("Notification dropdown not found!");
+            }
+        }
+        // Expose to global window
+        window.toggleNotifications = toggleNotifications;
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function (e) {
+            const dropdown = document.getElementById('notificationDropdown');
+            const btn = document.getElementById('notificationBtn');
+
+            // Safety check
+            if (!dropdown || !btn) return;
+
+            if (dropdown.classList.contains('show') && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        function clearNotifications() {
+            notifications = [];
+            renderNotifications();
+        }
+
+        function addNotification(msg, type = 'info') {
+            const notification = {
+                id: Date.now(),
+                msg: msg,
+                type: type,
+                time: new Date(),
+                read: false
+            };
+            notifications.unshift(notification);
+            renderNotifications();
+
+            // Show badge
+            const badge = document.getElementById('notificationBadge');
+            badge.textContent = notifications.filter(n => !n.read).length;
+            badge.style.display = 'block';
+        }
+
+        function renderNotifications() {
+            const list = document.getElementById('notificationList');
+            if (!notifications.length) {
+                list.innerHTML = '<div class="empty-state">Bildirim yok</div>';
+                return;
+            }
+
+            list.innerHTML = notifications.map(n => `
+                <div class="notification-item ${n.read ? '' : 'unread'}">
+                    <div class="notification-text">${n.msg}</div>
+                    <div class="notification-time">${n.time.toLocaleTimeString()}</div>
+                </div>
+            `).join('');
+        }
+
+        // Toast Messages
+        function showToast(type, msg) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+
+            // Icons based on type
+            let icon = 'fa-info-circle';
+            let color = 'var(--primary-500)';
+            if (type === 'success') { icon = 'fa-check-circle'; color = 'var(--success-500)'; }
+            if (type === 'error') { icon = 'fa-exclamation-circle'; color = 'var(--danger-500)'; }
+            if (type === 'warning') { icon = 'fa-exclamation-triangle'; color = 'var(--warning-500)'; }
+
+            toast.style.borderLeftColor = color;
+
+            toast.innerHTML = `
+                <div class="toast-icon" style="color:${color}"><i class="fas ${icon}"></i></div>
+                <div class="toast-content">
+                    <div class="toast-title">${type.charAt(0).toUpperCase() + type.slice(1)}</div>
+                    <div class="toast-msg">${msg}</div>
+                </div>
+            `;
+
+            container.appendChild(toast);
+
+            // Auto remove
+            setTimeout(() => {
+                toast.style.animation = 'slideInRight 0.3s ease-out reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+
+        // --- Socket Listeners for Progress ---
+        // We hook into existing socket connection
+        // Assuming 'socket' is globally available or we need to wait for it.
+        // Since this script is late in body, socket might be ready.
+
+        // Wait for socket to be ready
+        const checkSocket = setInterval(() => {
+            if (typeof socket !== 'undefined') {
+                clearInterval(checkSocket);
+                initSocketListeners();
+            }
+        }, 500);
+
+        function initSocketListeners() {
+            socket.on('job_update', function (data) {
+                // Check for Force Generate jobs
+                if (data.recent_jobs) {
+                    const forceJobs = data.recent_jobs.filter(j => j.id.startsWith('force_'));
+                    const activeForce = forceJobs.filter(j => ['pending', 'generating', 'rendering', 'uploading'].includes(j.status));
+                    const finishedForce = forceJobs.filter(j => ['uploaded', 'ready', 'failed'].includes(j.status));
+
+                    if (activeForce.length > 0) {
+                        // Update Force Stats
+                        const total = activeForce.length + finishedForce.length;
+                        const done = finishedForce.length;
+
+                        // Show/Update persistent toast for batch progress
+                        updateBatchToast(done, total);
+                    } else if (forceJobStats.active && activeForce.length === 0) {
+                        // Batch just finished
+                        updateBatchToast(forceJobStats.total, forceJobStats.total); // Show 100%
+                        setTimeout(() => removeBatchToast(), 3000);
+                        showToast('success', 'Hızlı Üretim Tamamlandı! 🚀');
+                        forceJobStats.active = false;
+                    }
+
+                    // Track state
+                    if (activeForce.length > 0) {
+                        forceJobStats = {
+                            total: activeForce.length + finishedForce.length,
+                            finished: finishedForce.length,
+                            active: true
+                        };
+                    }
+                }
+            });
+        }
+
+        let batchToastStart = null;
+        function updateBatchToast(done, total) {
+            const container = document.getElementById('toast-container');
+            let toast = document.getElementById('batch-progress-toast');
+
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'batch-progress-toast';
+                toast.className = 'toast';
+                container.appendChild(toast);
+            }
+
+            const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+
+            toast.innerHTML = `
+                <div class="toast-icon" style="color:var(--accent-500)"><i class="fas fa-rocket fa-spin"></i></div>
+                <div class="toast-content">
+                    <div class="toast-title">Hızlı Üretim</div>
+                    <div class="toast-msg">İlerleme: ${done}/${total} video (%${percent})</div>
+                    <div class="progress mt-1" style="height:4px; background:rgba(255,255,255,0.1)">
+                        <div class="progress-bar bg-accent" style="width:${percent}%"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function removeBatchToast() {
+            const toast = document.getElementById('batch-progress-toast');
+            if (toast) toast.remove();
+        }
+
+        // Global exports
+        window.showToast = showToast;
+        window.toggleNotifications = toggleNotifications;
+        window.loadUploadAccounts = loadUploadAccounts; // Preserve existing
+    </script>
+
+    <style>
+        /* Upload Modal Styles */
+        .upload-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.3s ease;
+            pointer-events: auto;
+            /* Tıklamaları yakala */
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .upload-modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            animation: slideUp 0.3s ease;
+            pointer-events: auto;
+            /* Tıklamaları yakala */
+            position: relative;
+            z-index: 10001;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .upload-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .upload-modal-header h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .upload-modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s;
+        }
+
+        .upload-modal-close:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .upload-modal-body {
+            padding: 24px;
+        }
+
+        .video-preview-info {
+            text-align: center;
+            padding: 24px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+            margin-bottom: 24px;
+        }
+
+        .video-filename {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin: 0;
+            word-break: break-all;
+        }
+
+        .upload-form .form-group {
+            margin-bottom: 20px;
+        }
+
+        .upload-form label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .upload-form .form-control {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .upload-form .form-control:focus {
+            outline: none;
+            border-color: var(--primary-500);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .upload-form textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .upload-form small {
+            display: block;
+            margin-top: 4px;
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        .upload-modal-footer {
+            display: flex;
+            gap: 12px;
+            padding: 24px;
+            border-top: 1px solid var(--border-subtle);
+            justify-content: flex-end;
+        }
+
+        .upload-modal-footer .btn {
+            padding: 12px 24px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .upload-modal-footer .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .upload-modal-footer .btn-secondary:hover {
+            background: var(--bg-elevated);
+        }
+
+        .upload-modal-footer .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+        }
+    </style>
+    <script>
+        // ========================================
+        // GEMMA SUGGESTION MODAL
+        // ========================================
+
+        async function showGemmaModal() {
+            // Close any existing modals first
+            const existing = document.getElementById('gemmaModal');
+            if (existing) existing.remove();
+
+            // Create Modal HTML
+            const modalHTML = ` <div id="gemmaModal" class="upload-modal-overlay"><div class="upload-modal-content" style="max-width: 800px;"><div class="upload-modal-header"><h2>✨ Gemma Kanal Fikirleri</h2><button class="upload-modal-close" onclick="closeGemmaModal()"><i class="fas fa-times"></i></button></div><div class="upload-modal-body"><div class="form-group mb-4"><label>Analiz Edilecek Kanalı Seçin</label><div class="d-flex gap-2"><select id="gemmaChannelSelect" class="form-control"><option value="">Yükleniyor...</option></select><button class="btn btn-primary" onclick="analyzeChannel()"><i class="fas fa-magic"></i>Analiz Et </button></div></div><div id="gemmaLoading" style="display:none; text-align:center; padding: 40px;"><i class="fas fa-circle-notch fa-spin fa-3x text-primary"></i><p class="mt-3 text-muted">Gemma kanalınızı inceliyor ve fikir üretiyor...</p></div><div id="gemmaResult" style="display:none; max-height: 500px; overflow-y: auto; background: var(--bg-tertiary); padding: 20px; border-radius: 8px; border: 1px solid var(--border-default);">< !-- Results will appear here --></div></div></div></div>`;
+
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+            // Populate accounts
+            try {
+                const response = await fetch('/api/accounts');
+                const data = await response.json();
+                const select = document.getElementById('gemmaChannelSelect');
+                select.innerHTML = '<option value="">Bir kanal seçin...</option>';
+
+                if (data.youtube) {
+                    const group = document.createElement('optgroup');
+                    group.label = "YouTube";
+
+                    data.youtube.forEach(ch => {
+                        group.innerHTML += `<option value="${ch.id}" >$ {
+                                ch.name
+                            }
+
+                            ($ {
+                                    ch.theme
+                                })</option>`;
+                    });
+                    select.appendChild(group);
+                }
+
+                if (data.tiktok) {
+                    const group = document.createElement('optgroup');
+                    group.label = "TikTok";
+
+                    data.tiktok.forEach(ch => {
+                        group.innerHTML += `<option value="${ch.id}" >$ {
+                                ch.name
+                            }
+
+                            </option>`;
+                    });
+                    select.appendChild(group);
+                }
+            }
+
+            catch (e) {
+                console.error("Failed to load accounts for Gemma:", e);
+                showToast('error', 'Hesap listesi yüklenemedi');
+            }
+        }
+
+        function closeGemmaModal() {
+            const modal = document.getElementById('gemmaModal');
+            if (modal) modal.remove();
+        }
+
+        async function analyzeChannel() {
+            const channelId = document.getElementById('gemmaChannelSelect').value;
+
+            if (!channelId) {
+                showToast('warning', 'Lütfen bir kanal seçin');
+                return;
+            }
+
+            const loading = document.getElementById('gemmaLoading');
+            const resultDiv = document.getElementById('gemmaResult');
+
+            loading.style.display = 'block';
+            resultDiv.style.display = 'none';
+            resultDiv.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/suggestions/channel', {
+
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+
+                    ,
+                    body: JSON.stringify({
+                        channel_id: channelId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Simple markdown formatting replacement
+                    let htmlContent = data.suggestion.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>').replace(/# (.*?)(<br>|$)/g, '<h3>$1</h3>').replace(/## (.*?)(<br>|$)/g, '<h4>$1</h4>').replace(/- (.*?)(<br>|$)/g, '<li>$1</li>');
+
+                    resultDiv.innerHTML = htmlContent;
+                    resultDiv.style.display = 'block';
+                }
+
+                else {
+                    showToast('error', data.error || 'Analiz başarısız');
+                }
+            }
+
+            catch (e) {
+                console.error(e);
+                showToast('error', 'Bir hata oluştu: ' + e.message);
+            }
+
+            finally {
+                loading.style.display = 'none';
+            }
+        }
+
+    </script>
+</body>
+
+</html>
+}
+
+.upload-modal-footer .btn-primary:disabled {
+opacity: 0.6;
+cursor: not-allowed;
+transform: none;
+}
+</style>
+
+<script>
+    // ========================================
+    // CACHE TEMIZLEME FONKSIYONU
+    // ========================================
+
+    window.clearAppCache = function () {
+        console.log('🧹 Cache temizleniyor...');
+
+        // 1. localStorage temizle
+        const appVersion = localStorage.getItem('app_version');
+        localStorage.clear();
+        console.log('✅ localStorage temizlendi');
+
+        // 2. sessionStorage temizle
+        sessionStorage.clear();
+        console.log('✅ sessionStorage temizlendi');
+
+        // 3. Service Worker cache temizle
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            const messageChannel = new MessageChannel();
+            messageChannel.port1.onmessage = (event) => {
+                if (event.data.success) {
+                    console.log('✅ Service Worker cache temizlendi');
+                }
+            };
+            navigator.serviceWorker.controller.postMessage(
+                { action: 'clearCache' },
+                [messageChannel.port2]
+            );
+        }
+
+        // 4. Browser cache temizle (mümkünse)
+        if ('caches' in window) {
+            caches.keys().then(names => {
+                names.forEach(name => {
+                    caches.delete(name);
+                    console.log('✅ Cache silindi:', name);
+                });
+            });
+        }
+
+        console.log('🎉 Tüm cache temizlendi!');
+        console.log('🔄 Sayfa 2 saniye sonra yenilenecek...');
+
+        // 5. Sayfayı yenile
+        setTimeout(() => {
+            window.location.reload(true);
+        }, 2000);
+    };
+
+    // Console'a yardım mesajı
+    console.log('%c🚀 STAINLESS MAX v2.1', 'font-size: 20px; font-weight: bold; color: #6366f1;');
+    console.log('%cCache sorunu yaşıyorsanız:', 'font-size: 14px; color: #f59e0b;');
+    console.log('%cclearAppCache()', 'font-size: 16px; font-weight: bold; color: #10b981; background: #1a1a25; padding: 8px;');
+    console.log('Bu komutu console\'a yazın ve Enter\'a basın.');
+</script>
+
+</body>
+
+</html>

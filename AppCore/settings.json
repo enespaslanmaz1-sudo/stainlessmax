@@ -1,0 +1,27 @@
+{
+  "api_keys": {
+    "pexels": "",
+    "gemini": "",
+    "telegram_token": "",
+    "telegram_admin": ""
+  },
+  "n8n": {
+    "url": "",
+    "webhook_id": "",
+    "sheets_id": ""
+  },
+  "youtube": {
+    "client_id": "",
+    "client_secret": ""
+  },
+  "tiktok": {
+    "client_key": "",
+    "client_secret": ""
+  },
+  "instagram": {
+    "username": "",
+    "password": "",
+    "daily_limit": 6,
+    "interval_hours": 4
+  }
+}

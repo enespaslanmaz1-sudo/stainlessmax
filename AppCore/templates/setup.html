@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stainless Max - Kurulum & Giriş</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f1015;
+            --card-bg: rgba(25, 26, 35, 0.7);
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-image: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%);
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-header h1 {
+            margin: 0 0 10px 0;
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #fff, #a5b4fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .auth-header p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .form-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: white;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .toggle-text {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .toggle-text a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .toggle-text a:hover {
+            color: #818cf8;
+        }
+
+        /* Tabs/Steps */
+        .step-indicators {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+
+        .step-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+
+        .step-dot.active {
+            background: var(--primary);
+            transform: scale(1.2);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Error Alert */
+        #alert-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .row>div {
+            flex: 1;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="auth-container" id="auth-box">
+        <div id="alert-box"></div>
+
+        <!-- YÖNLENDİRME (LOGİN) EKRANI -->
+        <div id="view-login">
+            <div class="auth-header">
+                <h1>Tekrar Hoş Geldiniz</h1>
+                <p>Stainless Max hesabınıza giriş yapın</p>
+            </div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label class="form-label">E-posta</label>
+                    <input type="email" id="login-email" class="form-input" required placeholder="E-posta Adresiniz">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Şifre</label>
+                    <input type="password" id="login-password" class="form-input" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn" id="btn-login">
+                    <span>Giriş Yap</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <div class="toggle-text">
+                Hesabınız yok mu? <a onclick="switchView('register')">Hemen Kaydolun</a>
+            </div>
+        </div>
+
+        <!-- KAYIT EKRANI -->
+        <div id="view-register" class="hidden">
+            <div class="auth-header">
+                <h1>Hesap Oluştur</h1>
+                <p>Otomasyona başlamak için bilgilerinizi girin</p>
+            </div>
+
+            <form id="register-form">
+                <div class="row">
+                    <div class="form-group">
+                        <label class="form-label">Ad</label>
+                        <input type="text" id="reg-name" class="form-input" required placeholder="Adınız">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Soyad</label>
+                        <input type="text" id="reg-surname" class="form-input" required placeholder="Soyadınız">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">E-posta</label>
+                    <input type="email" id="reg-email" class="form-input" required placeholder="E-posta Adresiniz">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Şifre <span style="font-size: 0.75rem; color:var(--text-muted)">(En az 6
+                            karakter)</span></label>
+                    <input type="password" id="reg-password" class="form-input" required placeholder="••••••••">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Promosyon Kodu <span
+                            style="font-size: 0.75rem; color:var(--text-muted)">(İsteğe bağlı)</span></label>
+                    <input type="text" id="reg-promo" class="form-input" placeholder="Kodunuz varsa girin"
+                        style="background: rgba(99,102,241,0.05); border-color: rgba(99,102,241,0.2);">
+                </div>
+
+                <button type="submit" class="btn" id="btn-register">
+                    <span>Hesap Oluştur</span>
+                    <i class="fas fa-user-plus"></i>
+                </button>
+            </form>
+
+            <div class="toggle-text">
+                Zaten hesabınız var mı? <a onclick="switchView('login')">Giriş Yapın</a>
+            </div>
+        </div>
+
+        <!-- API ANAHTARLARI EKRANI (KURULUM ADIM 2) -->
+        <div id="view-setup-keys" class="hidden">
+            <div class="step-indicators">
+                <div class="step-dot"></div>
+                <div class="step-dot active"></div>
+            </div>
+
+            <div class="auth-header">
+                <h1>Sistemi Bağlayın</h1>
+                <p>Videoları üretebilmek için API anahtarları gereklidir.</p>
+            </div>
+
+            <form id="keys-form">
+                <div class="form-group">
+                    <label class="form-label">Gemini API Key <span style="color:#ef4444">*</span></label>
+                    <input type="password" id="key-gemini" class="form-input" required
+                        placeholder="AI Metin Üretimi İçin">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Pexels API Key <span
+                            style="font-size: 0.75rem; color:var(--text-muted)">(İsteğe bağlı)</span></label>
+                    <input type="password" id="key-pexels" class="form-input" placeholder="Arka Plan Videoları İçin">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Telegram Bot Token <span
+                            style="font-size: 0.75rem; color:var(--text-muted)">(İsteğe bağlı)</span></label>
+                    <input type="password" id="key-tg-bot" class="form-input" placeholder="Bildirimler İçin">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Telegram Chat ID <span
+                            style="font-size: 0.75rem; color:var(--text-muted)">(İsteğe bağlı)</span></label>
+                    <input type="text" id="key-tg-chat" class="form-input" placeholder="Sohbet ID'si">
+                </div>
+
+                <button type="submit" class="btn" id="btn-save-keys">
+                    <span>Kaydet ve Başla</span>
+                    <i class="fas fa-rocket"></i>
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+    <script>
+        // Check JWT token. If present and valid => Redirect to /dashboard
+        // However, we wait until login to fetch /me and redirect.
+
+        let authToken = localStorage.getItem('stainless_token');
+
+        function showError(msg) {
+            const el = document.getElementById('alert-box');
+            el.textContent = msg;
+            el.style.display = 'block';
+            setTimeout(() => { el.style.display = 'none'; }, 5000);
+        }
+
+        function switchView(view) {
+            document.getElementById('view-login').classList.add('hidden');
+            document.getElementById('view-register').classList.add('hidden');
+            document.getElementById('view-setup-keys').classList.add('hidden');
+
+            document.getElementById('view-' + view).classList.remove('hidden');
+            document.getElementById('alert-box').style.display = 'none';
+        }
+
+        // INIT: Eğer localStorage'da token varsa /dashboard'a gitmeye çalış.
+        if (authToken) {
+            fetch('/api/auth/me', {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            }).then(r => r.json()).then(data => {
+                if (!data.error) {
+                    if (data.setup_complete) {
+                        window.location.href = '/dashboard';
+                    } else {
+                        // Yeni kaydolmuş ama key girmemiş
+                        switchView('setup-keys');
+                    }
+                } else {
+                    localStorage.removeItem('stainless_token');
+                }
+            }).catch(e => console.error(e));
+        }
+
+        // LOGIN
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-login');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('login-email').value,
+                        password: document.getElementById('login-password').value
+                    })
+                });
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.error || 'Giriş başarısız');
+
+                localStorage.setItem('stainless_token', data.token);
+                authToken = data.token;
+
+                if (data.user.setup_complete) {
+                    window.location.href = '/dashboard';
+                } else {
+                    switchView('setup-keys');
+                }
+            } catch (err) {
+                showError(err.message);
+                btn.disabled = false;
+                btn.innerHTML = '<span>Giriş Yap</span><i class="fas fa-arrow-right"></i>';
+            }
+        });
+
+        // REGISTER
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-register');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: document.getElementById('reg-name').value,
+                        surname: document.getElementById('reg-surname').value,
+                        email: document.getElementById('reg-email').value,
+                        password: document.getElementById('reg-password').value,
+                        promo_code: document.getElementById('reg-promo').value
+                    })
+                });
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.error || 'Kayıt başarısız');
+
+                localStorage.setItem('stainless_token', data.token);
+                authToken = data.token;
+
+                // Kayıt başarılı -> Setup aşaması 2'ye geç
+                switchView('setup-keys');
+
+            } catch (err) {
+                showError(err.message);
+                btn.disabled = false;
+                btn.innerHTML = '<span>Hesap Oluştur</span><i class="fas fa-user-plus"></i>';
+            }
+        });
+
+        // SETUP API KEYS
+        document.getElementById('keys-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-save-keys');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            try {
+                const keys = {
+                    GEMINI_API_KEY: document.getElementById('key-gemini').value,
+                    PEXELS_API_KEY: document.getElementById('key-pexels').value,
+                    TELEGRAM_BOT_TOKEN: document.getElementById('key-tg-bot').value,
+                    TELEGRAM_CHAT_ID: document.getElementById('key-tg-chat').value
+                };
+
+                const res = await fetch('/api/auth/update-keys', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(keys)
+                });
+
+                if (!res.ok) throw new Error('Keyler kaydedilemedi');
+
+                // Tamamlandı
+                window.location.href = '/dashboard';
+
+            } catch (err) {
+                showError(err.message);
+                btn.disabled = false;
+                btn.innerHTML = '<span>Kaydet ve Başla</span><i class="fas fa-rocket"></i>';
+            }
+        });
+    </script>
+</body>
+
+</html>

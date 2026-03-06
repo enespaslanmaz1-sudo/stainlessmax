@@ -1,0 +1,36 @@
+# PROD INSTALL:
+#   pip install -r requirements.txt
+# DEV/TEST INSTALL:
+#   pip install -r requirements-dev.txt
+
+flask==3.0.3
+flask-socketio==5.3.6
+flask-cors==4.0.0
+pywebview==5.1
+google-generativeai==0.8.3
+fpdf2==2.7.9
+moviepy==1.0.3
+ffmpeg-python==0.2.0
+pillow>=10.0.0
+numpy<2.0.0
+instagrapi==2.1.2
+selenium==4.17.2
+webdriver-manager==4.0.1
+edge-tts==6.1.12
+deep-translator==1.11.4
+apscheduler==3.10.4
+requests==2.31.0
+python-dotenv==1.0.1
+psutil==5.9.8
+colorama==0.4.6
+tqdm==4.66.1
+google-auth>=2.22.0
+google-auth-oauthlib>=1.0.0
+google-api-python-client>=2.97.0
+sqlalchemy>=2.0.0,<3.0.0
+psycopg[binary]>=3.2.0,<4.0.0
+PyJWT>=2.8.0,<3.0.0
+bcrypt>=4.1.0,<5.0.0
+
+# DB-backed ortamlar için PostgreSQL bağlantı URL'i:
+#   DATABASE_URL=postgresql+psycopg://USER:PASSWORD@HOST:5432/DBNAME

@@ -1,0 +1,66 @@
+from lib.db.models import (
+    DEFAULT_TENANT_ID,
+    ApiKey,
+    AuditLog,
+    Base,
+    Job,
+    JobEvent,
+    JobStatus,
+    Tenant,
+    TenantPlanRequest,
+    TenantSubscription,
+    UploadAttempt,
+    User,
+    WorkerHeartbeat,
+    TenantUsageQuota,
+)
+from lib.db.auth import install_auth, require_authenticated
+from lib.db.job_service import (
+    IdempotencyKeyMismatchError,
+    InvalidTransitionError,
+    JobRepository,
+    JobServiceError,
+)
+from lib.db.session import (
+    DEFAULT_DATABASE_ENV_VAR,
+    create_engine_from_env,
+    create_session_factory,
+    get_database_url,
+    session_scope,
+)
+from lib.db.tenant_context import (
+    get_current_tenant_id,
+    reset_to_default_tenant,
+    set_current_tenant_id,
+)
+
+__all__ = [
+    "Base",
+    "Tenant",
+    "User",
+    "ApiKey",
+    "AuditLog",
+    "Job",
+    "JobEvent",
+    "JobStatus",
+    "UploadAttempt",
+    "WorkerHeartbeat",
+    "TenantUsageQuota",
+    "TenantPlanRequest",
+    "TenantSubscription",
+    "DEFAULT_TENANT_ID",
+    "install_auth",
+    "require_authenticated",
+    "JobRepository",
+    "JobServiceError",
+    "InvalidTransitionError",
+    "IdempotencyKeyMismatchError",
+    "DEFAULT_DATABASE_ENV_VAR",
+    "get_database_url",
+    "create_engine_from_env",
+    "create_session_factory",
+    "session_scope",
+    "get_current_tenant_id",
+    "set_current_tenant_id",
+    "reset_to_default_tenant",
+]

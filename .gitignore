@@ -1,0 +1,31 @@
+# Junk folders
+dist/
+build/
+temp/
+.venv/
+.hypothesis/
+.pytest_cache/
+__pycache__/
+*.log
+*.exe
+*.dmg
+*.nupkg
+*.spec
+
+# User data
+AppCore/tokens/*
+AppCore/database/*
+AppCore/logs/*
+AppCore/backup/*
+AppCore/output/*
+AppCore/outputs/*
+AppCore/temp/*
+AppCore/temp_uploads/*
+AppCore/hesaplar.txt
+config/accounts.json
+config/license.json
+.env
+
+# VSCode
+.vscode/
+vscode/

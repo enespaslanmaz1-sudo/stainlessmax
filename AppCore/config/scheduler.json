@@ -1,0 +1,24 @@
+{
+    "tasks": [
+        {
+            "task_id": "morning_production",
+            "name": "Sabah Üretimi",
+            "schedule_type": "daily",
+            "schedule_time": "08:00",
+            "action": "produce_all",
+            "enabled": true,
+            "last_run": null,
+            "next_run": "2026-02-05T08:00:00"
+        },
+        {
+            "task_id": "evening_production",
+            "name": "Akşam Üretimi",
+            "schedule_type": "daily",
+            "schedule_time": "20:00",
+            "action": "produce_all",
+            "enabled": true,
+            "last_run": null,
+            "next_run": "2026-02-05T20:00:00"
+        }
+    ]
+}
