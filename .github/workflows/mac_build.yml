@@ -38,6 +38,9 @@ jobs:
 
       - name: Build macOS App
         run: |
+          # Eksik olabilecek klasörleri garantiye al (Git boş klasörleri taşımaz)
+          mkdir -p assets config
+          
           pyinstaller --windowed --noconfirm --clean --name "StainlessMax" \
             --add-data "AppCore:AppCore" \
             --add-data "website:website" \
