@@ -32,9 +32,6 @@ jobs:
           pip install pyinstaller cryptography PyMuPDF reportlab
           pip install pydantic schedule
           
-      - name: Create DMG Setup Tool
-        run: |
-          npm install -g create-dmg
 
       - name: Build macOS App
         run: |
@@ -62,7 +59,12 @@ jobs:
         run: |
           mkdir -p dmg_root
           cp -R "dist/StainlessMax.app" dmg_root/
-          ln -s /Applications dmg_root/Applications
+          
+          # HATA ÇÖZÜMÜ: macOS SIP/TCC (Github Runner kısıtlamaları) gereği '/Applications'
+          # klasörüne dışardan köprü (symlink) atmak hdiutil'i kilitlediği için symlink
+          # komutu kaldırılmıştır. 
+          
+          sleep 5 # Dosya kilitlerinin serbest kalması için buffer
           hdiutil create -volname "StainlessMax" -srcfolder dmg_root -ov -format UDZO StainlessMax_macOS.dmg
 
       - name: Upload Artifact
